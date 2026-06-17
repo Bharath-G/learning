@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bharath's 49-Day Learning System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0b0f1a;
+    --surface: #111827;
+    --surface2: #1a2236;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --accent4: #f59e0b;
+    --accent5: #ef4444;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+    --glow: rgba(0, 212, 255, 0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .hero {
+    background: linear-gradient(135deg, #0b0f1a 0%, #0d1b2e 50%, #0b0f1a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: -60px;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; right: -40px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(124,58,237,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+  .hero-title {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 0.4rem;
+  }
+  .hero-title span { color: var(--accent); }
+  .hero-sub {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 1.4rem;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .stat-chip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.45rem 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+  }
+  .stat-chip .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-cyan { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+  .dot-purple { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+  .dot-green { background: var(--accent3); box-shadow: 0 0 6px var(--accent3); }
+  .dot-amber { background: var(--accent4); box-shadow: 0 0 6px var(--accent4); }
+
+  /* SWOT */
+  .section-wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem;
+  }
+  .section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.9rem;
+  }
+  .swot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .swot-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+  }
+  .swot-card h3 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+    letter-spacing: 0.05em;
+  }
+  .swot-card ul { list-style: none; }
+  .swot-card ul li {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    padding: 0.22rem 0;
+    padding-left: 1rem;
+    position: relative;
+    line-height: 1.4;
+  }
+  .swot-card ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    font-size: 0.9rem;
+    line-height: 1.3;
+  }
+  .swot-s { border-top: 2px solid var(--accent3); }
+  .swot-s h3 { color: var(--accent3); }
+  .swot-w { border-top: 2px solid var(--accent5); }
+  .swot-w h3 { color: var(--accent5); }
+  .swot-o { border-top: 2px solid var(--accent); }
+  .swot-o h3 { color: var(--accent); }
+  .swot-t { border-top: 2px solid var(--accent4); }
+  .swot-t h3 { color: var(--accent4); }
+
+  /* PHASE LEGEND */
+  .phase-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .phase-pill {
+    font-size: 0.68rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 20px;
+    border: 1px solid;
+    font-weight: 500;
+  }
+  .ph1 { color: #00d4ff; border-color: #00d4ff30; background: #00d4ff10; }
+  .ph2 { color: #10b981; border-color: #10b98130; background: #10b98110; }
+  .ph3 { color: #f59e0b; border-color: #f59e0b30; background: #f59e0b10; }
+  .ph4 { color: #7c3aed; border-color: #7c3aed30; background: #7c3aed10; }
+  .ph5 { color: #f472b6; border-color: #f472b630; background: #f472b610; }
+  .ph6 { color: #fb923c; border-color: #fb923c30; background: #fb923c10; }
+
+  /* WEEK BLOCKS */
+  .week-block {
+    margin-bottom: 1.25rem;
+  }
+  .week-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+  }
+  .week-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .week-divider {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* DAY CARDS */
+  .day-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .day-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    display: grid;
+    grid-template-columns: 52px 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: default;
+  }
+  .day-card:hover {
+    border-color: var(--accent);
+    background: var(--surface2);
+  }
+  .day-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    line-height: 1.3;
+  }
+  .day-date {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+  .day-concept {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.35;
+  }
+  .day-sub {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 0.15rem;
+    line-height: 1.3;
+  }
+  .day-tag {
+    font-size: 0.62rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* Today highlight */
+  .day-card.today {
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.05);
+    box-shadow: 0 0 0 1px rgba(0,212,255,0.2);
+  }
+  .today-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 0.2rem;
+  }
+
+  /* FILTERS */
+  .filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .filter-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-dim);
+    font-size: 0.72rem;
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,212,255,0.06);
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .progress-bar-bg {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 600px) {
+    .swot-grid { grid-template-columns: 1fr; }
+    .day-card { grid-template-columns: 44px 1fr; }
+    .day-tag { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div style="max-width:960px;margin:0 auto;">
+    <div class="hero-tag">// The System · Learning Protocol v1.0</div>
+    <h1 class="hero-title">Bharath's <span>49-Day</span> Mastery Plan</h1>
+    <div class="hero-sub">June 17 → August 5, 2026 · Java + Spring Boot + Cloud + System Design</div>
+    <div class="stats-row">
+      <div class="stat-chip"><span class="dot dot-cyan"></span>49 concepts</div>
+      <div class="stat-chip"><span class="dot dot-purple"></span>6 phases</div>
+      <div class="stat-chip"><span class="dot dot-green"></span>1 concept/day</div>
+      <div class="stat-chip"><span class="dot dot-amber"></span>GCC-ready stack</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-wrap">
+
+  <!-- SWOT -->
+  <div class="section-title">// SWOT Analysis — Bharath Gopal</div>
+  <div class="swot-grid">
+    <div class="swot-card swot-s">
+      <h3>⚡ STRENGTHS</h3>
+      <ul>
+        <li>5+ yrs Java/Spring Boot — production depth</li>
+        <li>Real BFSI domain experience (USBank)</li>
+        <li>Kafka + KRaft hands-on (NeoBank project)</li>
+        <li>Spring AI + Ollama exploration ongoing</li>
+        <li>GraphQL, Cassandra, Docker exposure</li>
+        <li>GCC transition already in progress</li>
+        <li>High intrinsic motivation + self-driven</li>
+      </ul>
+    </div>
+    <div class="swot-card swot-w">
+      <h3>⚠️ WEAKNESSES</h3>
+      <ul>
+        <li>Cloud certs not yet in hand (AZ-900 pending)</li>
+        <li>System Design depth needs structured polish</li>
+        <li>DSA/LeetCode underinvested for product MNCs</li>
+        <li>Limited public visibility / open-source presence</li>
+        <li>Verbal communication not preferred — GCC risk</li>
+        <li>Bandwidth constraint (full-time job + health)</li>
+      </ul>
+    </div>
+    <div class="swot-card swot-o">
+      <h3>🚀 OPPORTUNITIES</h3>
+      <ul>
+        <li>GCC boom in Chennai — JP Morgan, Goldman, Citi</li>
+        <li>GenAI + Java is hottest combo in BFSI 2026</li>
+        <li>AZ-900 → AZ-204 roadmap already mapped</li>
+        <li>NeoBank is a portfolio goldmine if documented</li>
+        <li>Spring Boot 3.x + Virtual Threads = differentiation</li>
+        <li>AI-assisted coding fluency = productivity multiplier</li>
+      </ul>
+    </div>
+    <div class="swot-card swot-t">
+      <h3>🔥 THREATS</h3>
+      <ul>
+        <li>GenAI replacing boilerplate Java devs rapidly</li>
+        <li>GCC roles increasingly filter on cloud + DSA</li>
+        <li>Burnout risk — Ankylosing Spondylitis + workload</li>
+        <li>Underpaid → motivation erosion without progress</li>
+        <li>Competitors with cloud certs moving faster</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>Journey Progress</span>
+      <span id="progress-text">Day 1 of 49</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progress-fill" style="width: 2%"></div>
+    </div>
+  </div>
+
+  <!-- PHASE LEGEND -->
+  <div class="section-title">// Learning Phases</div>
+  <div class="phase-legend">
+    <span class="phase-pill ph1">Phase 1 · Java Internals (Days 1–7)</span>
+    <span class="phase-pill ph2">Phase 2 · Spring Mastery (Days 8–14)</span>
+    <span class="phase-pill ph3">Phase 3 · Kafka + Messaging (Days 15–21)</span>
+    <span class="phase-pill ph4">Phase 4 · System Design (Days 22–28)</span>
+    <span class="phase-pill ph5">Phase 5 · Cloud + AZ-900 (Days 29–38)</span>
+    <span class="phase-pill ph6">Phase 6 · AI + GenAI in Java (Days 39–49)</span>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterPhase('all', this)">All</button>
+    <button class="filter-btn" onclick="filterPhase('ph1', this)">Java Internals</button>
+    <button class="filter-btn" onclick="filterPhase('ph2', this)">Spring</button>
+    <button class="filter-btn" onclick="filterPhase('ph3', this)">Kafka</button>
+    <button class="filter-btn" onclick="filterPhase('ph4', this)">System Design</button>
+    <button class="filter-btn" onclick="filterPhase('ph5', this)">Cloud</button>
+    <button class="filter-btn" onclick="filterPhase('ph6', this)">AI + GenAI</button>
+  </div>
+
+  <!-- DAY PLAN -->
+  <div id="plan-container"></div>
+
+</div>
+
+<script>
+const days = [
+  // PHASE 1: Java Internals (Days 1-7)
+  { d:1, date:"Jun 17", concept:"JVM Memory Model — Heap, Stack, Metaspace", sub:"How objects live and die; why Metaspace replaced PermGen", phase:"ph1" },
+  { d:2, date:"Jun 18", concept:"Garbage Collection — G1GC vs ZGC", sub:"GC algorithms, stop-the-world pauses, tuning flags", phase:"ph1" },
+  { d:3, date:"Jun 19", concept:"Java Virtual Threads (Project Loom)", sub:"Why VTs crush thread-per-request; Spring Boot 3.2+ integration", phase:"ph1" },
+  { d:4, date:"Jun 20", concept:"CompletableFuture & Async Chains", sub:"thenApply, thenCompose, exceptionally patterns in APIs", phase:"ph1" },
+  { d:5, date:"Jun 21", concept:"Java Records, Sealed Classes, Pattern Matching", sub:"Modern Java 17–21 features that reduce boilerplate in BFSI", phase:"ph1" },
+  { d:6, date:"Jun 22", concept:"Streams API — Collectors, FlatMap, Grouping", sub:"Terminal ops, lazy evaluation, parallel stream caveats", phase:"ph1" },
+  { d:7, date:"Jun 23", concept:"Java Generics & Type Erasure", sub:"Bounded wildcards, PECS principle, why erasure matters", phase:"ph1" },
+
+  // PHASE 2: Spring Mastery (Days 8-14)
+  { d:8, date:"Jun 24", concept:"Spring IoC Container Internals", sub:"BeanFactory vs ApplicationContext, BeanDefinition lifecycle", phase:"ph2" },
+  { d:9, date:"Jun 25", concept:"Spring AOP — Proxies, Pointcuts, Advice", sub:"JDK proxy vs CGLIB; real use: logging, transactions, security", phase:"ph2" },
+  { d:10, date:"Jun 26", concept:"Spring Security — Filter Chain Deep Dive", sub:"SecurityFilterChain, JWT token flow, OncePerRequestFilter", phase:"ph2" },
+  { d:11, date:"Jun 27", concept:"Spring Data JPA — N+1 Problem & Fix", sub:"Lazy vs eager, @EntityGraph, JPQL joins, batch fetching", phase:"ph2" },
+  { d:12, date:"Jun 28", concept:"Spring WebFlux & Reactive Streams", sub:"Mono, Flux, backpressure, when to use reactive vs MVC", phase:"ph2" },
+  { d:13, date:"Jun 29", concept:"Spring Boot 3.x — GraalVM Native Images", sub:"AOT compilation, startup time, tradeoffs for microservices", phase:"ph2" },
+  { d:14, date:"Jun 30", concept:"Spring Actuator + Micrometer + Prometheus", sub:"Custom metrics, health indicators, production observability", phase:"ph2" },
+
+  // PHASE 3: Kafka + Messaging (Days 15-21)
+  { d:15, date:"Jul 1",  concept:"Kafka Architecture — Brokers, Topics, Partitions", sub:"Leader-follower, ISR, consumer groups, offset management", phase:"ph3" },
+  { d:16, date:"Jul 2",  concept:"Kafka KRaft Mode (No ZooKeeper)", sub:"How metadata quorum works; migration path from ZK", phase:"ph3" },
+  { d:17, date:"Jul 3",  concept:"Kafka Consumer — At-Least-Once vs Exactly-Once", sub:"Idempotent producer, transactional APIs, delivery semantics", phase:"ph3" },
+  { d:18, date:"Jul 4",  concept:"Spring Kafka — @KafkaListener, Error Handling", sub:"Dead letter topics, retry templates, SeekToCurrentErrorHandler", phase:"ph3" },
+  { d:19, date:"Jul 5",  concept:"Kafka Streams — Stateful Processing", sub:"KTable, KStream joins, windowing, interactive queries", phase:"ph3" },
+  { d:20, date:"Jul 6",  concept:"Saga Pattern — Choreography vs Orchestration", sub:"Distributed transactions via events; outbox pattern", phase:"ph3" },
+  { d:21, date:"Jul 7",  concept:"Schema Registry & Avro / Protobuf", sub:"Why schema evolution matters; Confluent SR integration", phase:"ph3" },
+
+  // PHASE 4: System Design (Days 22-28)
+  { d:22, date:"Jul 8",  concept:"CAP Theorem & BASE vs ACID", sub:"Why distributed systems can't have all three; real examples", phase:"ph4" },
+  { d:23, date:"Jul 9",  concept:"Rate Limiting — Token Bucket vs Sliding Window", sub:"Implementations in Spring + Redis; GCC interview staple", phase:"ph4" },
+  { d:24, date:"Jul 10", concept:"Consistent Hashing & Sharding", sub:"Virtual nodes, ring topology, DB horizontal scaling", phase:"ph4" },
+  { d:25, date:"Jul 11", concept:"Caching Strategies — Cache-Aside, Write-Through", sub:"Redis eviction policies, cache stampede, TTL design", phase:"ph4" },
+  { d:26, date:"Jul 12", concept:"API Gateway Pattern — BFF & Aggregation", sub:"Kong / Spring Cloud Gateway; auth, rate limit, routing", phase:"ph4" },
+  { d:27, date:"Jul 13", concept:"Circuit Breaker & Bulkhead Pattern", sub:"Resilience4j in Spring Boot; half-open state, fallbacks", phase:"ph4" },
+  { d:28, date:"Jul 14", concept:"Event Sourcing & CQRS", sub:"Append-only log as truth; read model projections", phase:"ph4" },
+
+  // PHASE 5: Cloud + AZ-900 (Days 29-38)
+  { d:29, date:"Jul 15", concept:"Azure Core Concepts — Regions, Resource Groups, ARM", sub:"AZ-900 foundation: how Azure is organized and billed", phase:"ph5" },
+  { d:30, date:"Jul 16", concept:"Azure Compute — VMs, App Service, AKS, Functions", sub:"When to use what; serverless vs container vs PaaS", phase:"ph5" },
+  { d:31, date:"Jul 17", concept:"Azure Storage — Blob, Queue, Table, File", sub:"Tiers, replication (LRS/ZRS/GRS), lifecycle policies", phase:"ph5" },
+  { d:32, date:"Jul 18", concept:"Azure Networking — VNet, NSG, Load Balancer", sub:"Subnets, peering, private endpoints, DNS zones", phase:"ph5" },
+  { d:33, date:"Jul 19", concept:"Azure Identity — AAD, RBAC, Managed Identity", sub:"App registrations, service principals, zero-trust model", phase:"ph5" },
+  { d:34, date:"Jul 20", concept:"Azure DevOps — Pipelines, Repos, Artifacts", sub:"CI/CD pipeline yaml, triggers, environments", phase:"ph5" },
+  { d:35, date:"Jul 21", concept:"Azure Monitor, Log Analytics, Application Insights", sub:"Kusto queries, alerts, distributed tracing integration", phase:"ph5" },
+  { d:36, date:"Jul 22", concept:"Azure Service Bus vs Event Hub vs Event Grid", sub:"Choosing the right messaging service; BFSI relevance", phase:"ph5" },
+  { d:37, date:"Jul 23", concept:"Azure AKS — Kubernetes Core Concepts", sub:"Pods, Deployments, Services, ConfigMaps, Helm basics", phase:"ph5" },
+  { d:38, date:"Jul 24", concept:"AZ-900 Mock Drill — Cloud Concepts & Pricing", sub:"Full topic review: CapEx/OpEx, SLAs, cost management", phase:"ph5" },
+
+  // PHASE 6: AI + GenAI in Java (Days 39-49)
+  { d:39, date:"Jul 25", concept:"Spring AI — ChatClient, Prompt Templates", sub:"Connecting to Ollama/OpenAI from Spring Boot; streaming", phase:"ph6" },
+  { d:40, date:"Jul 26", concept:"RAG — Retrieval Augmented Generation", sub:"VectorStore, EmbeddingModel, document chunking in Spring AI", phase:"ph6" },
+  { d:41, date:"Jul 27", concept:"LLM Function Calling in Java", sub:"Tool registration, parameter schema, financial agent patterns", phase:"ph6" },
+  { d:42, date:"Jul 28", concept:"Ollama Local Models — Quantization & Performance", sub:"GGUF models, memory tradeoffs, BFSI private inference", phase:"ph6" },
+  { d:43, date:"Jul 29", concept:"Prompt Engineering for Java Devs", sub:"System prompts, few-shot, chain-of-thought, output parsers", phase:"ph6" },
+  { d:44, date:"Jul 30", concept:"AI Observability — LLM Tracing & Cost Tracking", sub:"Micrometer + Spring AI integration; token usage monitoring", phase:"ph6" },
+  { d:45, date:"Jul 31", concept:"Vector Databases — pgvector, Chroma, Milvus", sub:"Cosine similarity, HNSW index, when to use vs relational", phase:"ph6" },
+  { d:46, date:"Aug 1",  concept:"COBOL-to-Java GenAI Migration Patterns", sub:"AST parsing, LLM translation pipelines, validation strategies", phase:"ph6" },
+  { d:47, date:"Aug 2",  concept:"AI Agent Design with Spring AI", sub:"Multi-step reasoning, tool chaining, memory patterns", phase:"ph6" },
+  { d:48, date:"Aug 3",  concept:"GenAI in BFSI — Compliance, Explainability, Risk", sub:"Model governance, audit trails, RBI/regulatory context", phase:"ph6" },
+  { d:49, date:"Aug 4",  concept:"Review Day — Build Your 49-Day Summary Doc", sub:"Synthesize all 6 phases; update GitHub README + LinkedIn", phase:"ph6" },
+];
+
+const phaseColors = {
+  ph1: { color: '#00d4ff', bg: 'rgba(0,212,255,0.08)', label: 'Java' },
+  ph2: { color: '#10b981', bg: 'rgba(16,185,129,0.08)', label: 'Spring' },
+  ph3: { color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', label: 'Kafka' },
+  ph4: { color: '#7c3aed', bg: 'rgba(124,58,237,0.08)', label: 'SysDesign' },
+  ph5: { color: '#f472b6', bg: 'rgba(244,114,182,0.08)', label: 'Cloud' },
+  ph6: { color: '#fb923c', bg: 'rgba(251,146,60,0.08)', label: 'AI/GenAI' },
+};
+
+const weeks = [
+  { label: "Week 1 · Jun 17–23", days: [1,2,3,4,5,6,7] },
+  { label: "Week 2 · Jun 24–30", days: [8,9,10,11,12,13,14] },
+  { label: "Week 3 · Jul 1–7", days: [15,16,17,18,19,20,21] },
+  { label: "Week 4 · Jul 8–14", days: [22,23,24,25,26,27,28] },
+  { label: "Week 5 · Jul 15–21", days: [29,30,31,32,33,34,35] },
+  { label: "Week 6 · Jul 22–28", days: [36,37,38,39,40,41,42] },
+  { label: "Week 7 · Jul 29–Aug 4", days: [43,44,45,46,47,48,49] },
+];
+
+let currentFilter = 'all';
+
+function renderPlan(filter) {
+  const container = document.getElementById('plan-container');
+  container.innerHTML = '';
+
+  weeks.forEach(week => {
+    const relevantDays = week.days.map(d => days[d-1]).filter(d => filter === 'all' || d.phase === filter);
+    if (relevantDays.length === 0) return;
+
+    const weekDiv = document.createElement('div');
+    weekDiv.className = 'week-block';
+
+    weekDiv.innerHTML = `
+      <div class="week-header">
+        <span class="week-label">${week.label}</span>
+        <div class="week-divider"></div>
+      </div>
+      <div class="day-grid">
+        ${relevantDays.map(d => {
+          const p = phaseColors[d.phase];
+          const isToday = d.d === 1;
+          return `
+            <div class="day-card ${isToday ? 'today' : ''}" data-phase="${d.phase}">
+              <div>
+                <div class="day-num">Day ${String(d.d).padStart(2,'0')}</div>
+                <div class="day-date">${d.date}</div>
+                ${isToday ? '<div class="today-badge">▶ TODAY</div>' : ''}
+              </div>
+              <div>
+                <div class="day-concept">${d.concept}</div>
+                <div class="day-sub">${d.sub}</div>
+              </div>
+              <div class="day-tag" style="color:${p.color};background:${p.bg};border:1px solid ${p.color}30">${p.label}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+    container.appendChild(weekDiv);
+  });
+}
+
+function filterPhase(phase, btn) {
+  currentFilter = phase;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPlan(phase);
+}
+
+// Init
+renderPlan('all');
+
+// Progress
+const todayDay = 1;
+const pct = Math.round((todayDay / 49) * 100);
+document.getElementById('progress-fill').style.width = pct + '%';
+document.getElementById('progress-text').innerText = `Day ${todayDay} of 49 · ${pct}% complete`;
+</script>
+</body>
+</html>
