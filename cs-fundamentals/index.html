@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backend Dev Mastery</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent: #00ff88;
+    --accent2: #ff6b35;
+    --accent3: #7c6aff;
+    --text: #e2e2f0;
+    --muted: #6b6b8a;
+    --card: #13131f;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid noise texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,136,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,136,0.015) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    position: relative;
+    z-index: 1;
+    padding: 48px 32px 32px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(0,255,136,0.04) 0%, transparent 100%);
+  }
+
+  .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -1px;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 400;
+    max-width: 500px;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 32px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* Search */
+  .search-bar {
+    position: relative;
+    z-index: 1;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 11px 14px 11px 38px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input[type="text"]:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder { color: var(--muted); }
+
+  .filter-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 7px 14px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,255,136,0.06);
+  }
+
+  /* Layout */
+  .layout {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 0;
+  }
+
+  /* Sidebar TOC */
+  .toc {
+    width: 220px;
+    flex-shrink: 0;
+    padding: 24px 20px;
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .toc-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .toc-item {
+    display: block;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 2px;
+    border: 1px solid transparent;
+    text-decoration: none;
+  }
+
+  .toc-item:hover, .toc-item.active {
+    color: var(--accent);
+    border-color: var(--border);
+    background: rgba(0,255,136,0.04);
+  }
+
+  .toc-dot {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  /* Main content */
+  .main {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+    min-width: 0;
+  }
+
+  .category {
+    margin-bottom: 56px;
+  }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .category-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .category-title {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .category-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+
+  .terms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+  }
+
+  .term-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .term-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    border-radius: 8px 0 0 8px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .term-card:hover {
+    border-color: rgba(0,255,136,0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(0,255,136,0.06);
+  }
+
+  .term-card:hover::before { opacity: 1; background: var(--accent); }
+  .term-card.c2::before { background: var(--accent2); }
+  .term-card.c3::before { background: var(--accent3); }
+  .term-card.c2:hover { border-color: rgba(255,107,53,0.3); }
+  .term-card.c3:hover { border-color: rgba(124,106,255,0.3); }
+
+  .term-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .term-card.c2 .term-name { color: var(--accent2); }
+  .term-card.c3 .term-name { color: var(--accent3); }
+
+  .term-def {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .term-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .term-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: rgba(0,255,136,0.08);
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .term-card.c2 .term-tag {
+    background: rgba(255,107,53,0.08);
+    color: var(--accent2);
+  }
+
+  .term-card.c3 .term-tag {
+    background: rgba(124,106,255,0.08);
+    color: var(--accent3);
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+  }
+
+  .progress-ring {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .ring-track {
+    height: 2px;
+    flex: 1;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .ring-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  @media (max-width: 768px) {
+    .toc { display: none; }
+    .main { padding: 20px 16px; }
+    .terms-grid { grid-template-columns: 1fr; }
+    .stats-bar { gap: 20px; }
+    header { padding: 32px 16px 24px; }
+    .search-bar { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="tag">// backend engineering reference</span>
+  <h1>Backend Dev &amp;<br><span>CS Mastery Index</span></h1>
+  <p class="subtitle">Every term, concept, and fundamental a senior backend engineer must command — from transistors to distributed systems. Java/Spring Boot oriented.</p>
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-num" id="total-count">0</span>
+      <span class="stat-label">Total Terms</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" id="cat-count">0</span>
+      <span class="stat-label">Categories</span>
+    </div>
+    <div class="stat">
+      <span class="stat-num" id="visible-count">0</span>
+      <span class="stat-label">Showing</span>
+    </div>
+  </div>
+</header>
+
+<div class="search-bar">
+  <div class="search-wrap">
+    <span class="search-icon">&gt;_</span>
+    <input type="text" id="search" placeholder="Search terms, concepts, keywords...">
+  </div>
+  <div class="filter-btns" id="filter-btns">
+    <button class="filter-btn active" data-filter="all">All</button>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="toc" id="toc"></nav>
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+const CATEGORIES = [
+  {
+    id: "core-java",
+    title: "Core Java & OOP",
+    icon: "☕",
+    color: "c1",
+    terms: [
+      { name: "OOP (Object-Oriented Programming)", def: "Paradigm around objects with state (fields) and behavior (methods). Four pillars: Encapsulation, Abstraction, Inheritance, Polymorphism.", tags: ["foundation"] },
+      { name: "Encapsulation", def: "Bundling data and methods together, hiding internal state via access modifiers (private, protected, public). Prevents accidental mutation.", tags: ["oop"] },
+      { name: "Inheritance", def: "Child class acquiring fields and methods of parent via `extends`. Enables code reuse. Java supports single class inheritance, multiple via interfaces.", tags: ["oop"] },
+      { name: "Polymorphism", def: "Same method name behaves differently based on object type. Runtime polymorphism via method overriding; compile-time via overloading.", tags: ["oop"] },
+      { name: "Abstraction", def: "Hiding implementation details, exposing only essential behavior via abstract classes or interfaces. Reduces coupling.", tags: ["oop"] },
+      { name: "Interface vs Abstract Class", def: "Interface = pure contract, multiple implement-able. Abstract class = partial implementation, single extendable. Use interface for capability, abstract for shared base.", tags: ["oop", "design"] },
+      { name: "SOLID Principles", def: "S: Single Responsibility. O: Open/Closed. L: Liskov Substitution. I: Interface Segregation. D: Dependency Inversion. Cornerstone of maintainable OOP code.", tags: ["design", "interview"] },
+      { name: "Generics", def: "Type-safe parameterized code. `List<T>`, `<T extends Comparable<T>>`. Avoids raw type casts. Enables reusable algorithms without type duplication.", tags: ["java"] },
+      { name: "Collections Framework", def: "Hierarchy: Iterable → Collection → List/Set/Queue. Map is separate. Key: ArrayList (O(1) get), LinkedList (O(1) add/remove), HashMap (O(1) avg), TreeMap (sorted).", tags: ["java", "data-structures"] },
+      { name: "HashMap Internals", def: "Array of buckets with linked list/tree (Java 8+). Hashing → index via `hashCode()` + `equals()`. Load factor 0.75. Resize doubles capacity.", tags: ["java", "interview"] },
+      { name: "Concurrency & Multithreading", def: "Thread lifecycle: NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED. synchronized, volatile, ReentrantLock for thread safety.", tags: ["java", "concurrency"] },
+      { name: "ExecutorService & Thread Pools", def: "Manage thread lifecycle efficiently. Types: FixedThreadPool, CachedThreadPool, ScheduledThreadPool. Avoid raw `new Thread()` in production.", tags: ["java", "concurrency"] },
+      { name: "CompletableFuture", def: "Async, non-blocking computation chains. `.thenApply()`, `.thenCompose()`, `.allOf()`. Replaces callback hell with fluent async pipelines.", tags: ["java", "async"] },
+      { name: "Java Memory Model", def: "Stack (method frames, primitives), Heap (objects). GC: Young Gen → Old Gen → Metaspace. Understand GC pauses, memory leaks via retained references.", tags: ["java", "performance"] },
+      { name: "Functional Interfaces & Lambdas", def: "Single abstract method interfaces (Predicate, Function, Supplier, Consumer). Lambdas are syntactic sugar for anonymous classes. Enables functional-style code.", tags: ["java8+"] },
+      { name: "Stream API", def: "Functional data pipeline: filter → map → collect. Lazy evaluation, no side effects. `.stream()`, `.parallelStream()`. Collectors: toList, groupingBy, joining.", tags: ["java8+"] },
+      { name: "Optional", def: "Container that may or may not hold a value. Eliminates NullPointerException if used properly. `.orElse()`, `.map()`, `.ifPresent()`. Don't use as method parameter.", tags: ["java8+"] },
+      { name: "Checked vs Unchecked Exceptions", def: "Checked (IOException, SQLException): must be declared or caught. Unchecked (RuntimeException): optional. Spring convention: prefer unchecked in service layers.", tags: ["java"] },
+      { name: "Serialization", def: "Converting object to byte stream for storage/transport. Java Serializable interface. JSON serialization via Jackson. Beware serialVersionUID changes breaking deserialization.", tags: ["java"] },
+      { name: "Reflection API", def: "Inspect/modify class structure at runtime. `Class.forName()`, `.getDeclaredMethods()`. Foundation of Spring's DI and annotation processing. Performance cost — use judiciously.", tags: ["java", "advanced"] },
+    ]
+  },
+  {
+    id: "spring",
+    title: "Spring Boot & Framework",
+    icon: "🌱",
+    color: "c2",
+    terms: [
+      { name: "Spring IoC Container", def: "Inversion of Control: framework manages object lifecycle and dependencies. ApplicationContext is the container. You declare what you need; Spring wires it.", tags: ["spring", "foundation"] },
+      { name: "Dependency Injection (DI)", def: "Objects receive dependencies from outside (constructor, setter, field injection). Constructor injection preferred: immutable, testable, avoids circular dependencies.", tags: ["spring", "design"] },
+      { name: "@Component / @Service / @Repository / @Controller", def: "Stereotype annotations registering beans in the container. @Repository adds persistence exception translation. @Service marks business logic. @Controller handles HTTP.", tags: ["spring", "annotations"] },
+      { name: "@Autowired", def: "Injects bean by type. Prefer constructor injection over @Autowired field injection (better testability, immutability). @Qualifier disambiguates multiple beans of same type.", tags: ["spring", "annotations"] },
+      { name: "Spring Bean Scopes", def: "Singleton (default, one per container), Prototype (new per request), Request, Session (web). Singleton is NOT thread-safe if mutable state is held.", tags: ["spring"] },
+      { name: "Spring MVC Request Lifecycle", def: "Request → DispatcherServlet → HandlerMapping → Controller → Service → Repository → Response. Filters and Interceptors wrap the chain.", tags: ["spring", "web"] },
+      { name: "@RestController / @RequestMapping", def: "@RestController = @Controller + @ResponseBody. @RequestMapping maps URLs to methods. Shortcuts: @GetMapping, @PostMapping, @PutMapping, @DeleteMapping, @PatchMapping.", tags: ["spring", "annotations"] },
+      { name: "@PathVariable / @RequestParam / @RequestBody", def: "@PathVariable: from URL path `/users/{id}`. @RequestParam: from query string `?page=1`. @RequestBody: deserializes JSON body to object via Jackson.", tags: ["spring", "annotations"] },
+      { name: "Spring Data JPA", def: "Abstraction over JPA/Hibernate. Extend JpaRepository<Entity, ID> and get CRUD for free. Derives queries from method names. @Query for JPQL/native SQL.", tags: ["spring", "data"] },
+      { name: "Spring AOP", def: "Aspect-Oriented Programming. Cross-cutting concerns (logging, security, transactions) without cluttering business logic. @Aspect, @Around, @Before, @After, Pointcut expressions.", tags: ["spring", "advanced"] },
+      { name: "@Transactional", def: "Declarative transaction management. Propagation (REQUIRED, REQUIRES_NEW), Isolation (READ_COMMITTED default), rollbackFor. Proxy-based — internal calls bypass it.", tags: ["spring", "data"] },
+      { name: "Spring Security", def: "Authentication (who are you?) and Authorization (what can you do?). Filter chain based. JWT, OAuth2, Basic auth support. @PreAuthorize for method-level security.", tags: ["spring", "security"] },
+      { name: "Spring Profiles", def: "@Profile(\"dev\") / @Profile(\"prod\"). `spring.profiles.active` in application.yml. Separate config, beans, and behavior per environment.", tags: ["spring", "config"] },
+      { name: "application.yml / application.properties", def: "Externalized configuration. Hierarchy: default → profile-specific → env vars → command-line args. @Value injects single props; @ConfigurationProperties binds whole prefixes.", tags: ["spring", "config"] },
+      { name: "Spring Boot Actuator", def: "Production-ready endpoints: /health, /metrics, /info, /env, /beans. Integrates with Prometheus/Grafana. Expose selectively — security risk if open.", tags: ["spring", "ops"] },
+      { name: "Spring Batch", def: "Framework for batch processing: Job → Steps → ItemReader → ItemProcessor → ItemWriter. Chunk-based processing with retry, skip, and restart capabilities.", tags: ["spring", "advanced"] },
+      { name: "Spring Cloud", def: "Microservices toolkit: Config Server, Eureka (discovery), Gateway, Circuit Breaker (Resilience4j), Feign clients, Sleuth (tracing). Built on Netflix OSS concepts.", tags: ["spring", "microservices"] },
+      { name: "Spring WebFlux", def: "Reactive, non-blocking web framework using Project Reactor (Mono, Flux). For high-concurrency I/O-bound workloads. Different programming model from MVC.", tags: ["spring", "reactive"] },
+      { name: "DTO Pattern", def: "Data Transfer Objects decouple API layer from domain model. Prevents over-exposing internal entity fields. Use MapStruct or ModelMapper for conversions.", tags: ["spring", "design"] },
+      { name: "Exception Handling (@ControllerAdvice)", def: "@ControllerAdvice + @ExceptionHandler for global error handling. Return consistent error responses (status, code, message, timestamp). Don't expose stack traces externally.", tags: ["spring", "web"] },
+    ]
+  },
+  {
+    id: "databases",
+    title: "Databases & Persistence",
+    icon: "🗄️",
+    color: "c3",
+    terms: [
+      { name: "ACID Properties", def: "Atomicity (all or nothing), Consistency (valid state transitions), Isolation (transactions don't interfere), Durability (committed data survives crashes). Foundation of relational DBs.", tags: ["database", "foundation"] },
+      { name: "RDBMS vs NoSQL", def: "RDBMS: structured, ACID, joins, fixed schema (Postgres, MySQL, Oracle). NoSQL: flexible schema, horizontal scale, eventual consistency (MongoDB, Cassandra, Redis).", tags: ["database"] },
+      { name: "Indexing", def: "B-Tree index: fast range queries. Hash index: exact lookups. Composite index: column order matters. Covering index. Too many indexes slow writes. `EXPLAIN ANALYZE` to verify usage.", tags: ["database", "performance"] },
+      { name: "SQL Joins", def: "INNER: matching rows both sides. LEFT/RIGHT: all from one side + matches. FULL OUTER: all rows. CROSS: cartesian product. Understanding join execution is key for optimization.", tags: ["database", "sql"] },
+      { name: "Normalization", def: "1NF (atomic values), 2NF (no partial dependencies), 3NF (no transitive dependencies). Over-normalization hurts read performance. Denormalize strategically for read-heavy workloads.", tags: ["database", "design"] },
+      { name: "Transaction Isolation Levels", def: "READ UNCOMMITTED → READ COMMITTED → REPEATABLE READ → SERIALIZABLE. Higher isolation = fewer anomalies (dirty read, phantom read) but lower concurrency. Postgres default: READ COMMITTED.", tags: ["database", "advanced"] },
+      { name: "ORM & JPA/Hibernate", def: "Maps Java objects to DB tables. EntityManager, persistence context, lazy vs eager loading. N+1 problem: use JOIN FETCH or @EntityGraph. First-level cache (session), second-level (EhCache).", tags: ["database", "java"] },
+      { name: "Connection Pooling (HikariCP)", def: "Reuses DB connections instead of creating new ones per request. HikariCP is Spring Boot default. Tune: maximumPoolSize, connectionTimeout, idleTimeout per load profile.", tags: ["database", "performance"] },
+      { name: "Database Migrations (Flyway/Liquibase)", def: "Version-controlled schema changes. Flyway: SQL/Java migrations with V1__desc.sql naming. Liquibase: XML/YAML changelogs. Critical for CI/CD pipelines.", tags: ["database", "devops"] },
+      { name: "Cassandra Data Model", def: "Wide-column store, partition key determines node, clustering columns sort within partition. Design tables for query patterns (not relationships). No joins, no transactions across partitions.", tags: ["nosql", "cassandra"] },
+      { name: "Redis", def: "In-memory data structure store. Use cases: caching, session storage, pub/sub, rate limiting, distributed locks (SETNX). TTL-based expiration. Persistence: RDB snapshots, AOF logs.", tags: ["nosql", "cache"] },
+      { name: "CAP Theorem", def: "Distributed systems can guarantee only 2 of 3: Consistency, Availability, Partition Tolerance. CP (Cassandra config, HBase) vs AP (DynamoDB, Cassandra default). Partition tolerance is non-negotiable in distributed systems.", tags: ["distributed", "theory"] },
+      { name: "Query Optimization", def: "Use EXPLAIN ANALYZE. Avoid SELECT *. Proper indexing, avoid functions on indexed columns in WHERE. Pagination via keyset (WHERE id > last) over OFFSET for large datasets.", tags: ["database", "performance"] },
+      { name: "Sharding vs Replication", def: "Sharding: horizontal partitioning of data across nodes for scale. Replication: copies of same data across nodes for availability and read scale. Often used together.", tags: ["database", "distributed"] },
+      { name: "Eventual Consistency", def: "In distributed systems, replicas may be temporarily inconsistent but converge given no new updates. Trade-off for availability and partition tolerance in AP systems.", tags: ["distributed", "theory"] },
+    ]
+  },
+  {
+    id: "apis",
+    title: "APIs & Communication",
+    icon: "🔌",
+    color: "c1",
+    terms: [
+      { name: "REST Principles", def: "Stateless, client-server, uniform interface, cacheable, layered system. Resources identified by URIs. HTTP verbs: GET (read), POST (create), PUT (replace), PATCH (partial update), DELETE.", tags: ["api", "foundation"] },
+      { name: "HTTP Status Codes", def: "2xx: success. 3xx: redirect. 4xx: client error (400 bad request, 401 unauth, 403 forbidden, 404 not found, 409 conflict, 422 unprocessable). 5xx: server error.", tags: ["api", "http"] },
+      { name: "GraphQL", def: "Query language for APIs. Client specifies exactly what data it needs. Single endpoint. Resolvers fetch data. Avoids over-fetching/under-fetching. N+1 problem solved via DataLoader.", tags: ["api", "graphql"] },
+      { name: "gRPC", def: "High-performance RPC framework using Protocol Buffers (protobuf) over HTTP/2. Strongly typed contracts. Streaming support. Faster than REST for inter-service communication.", tags: ["api", "rpc"] },
+      { name: "OpenAPI / Swagger", def: "Specification for documenting REST APIs. Springdoc-openapi auto-generates from annotations. Machine-readable contract enables client generation, testing, and API governance.", tags: ["api", "docs"] },
+      { name: "API Versioning", def: "Strategies: URI path (/v1/users), query param (?version=1), header (Accept-Version). Versioning prevents breaking changes for existing clients.", tags: ["api", "design"] },
+      { name: "Rate Limiting", def: "Throttle requests per client to prevent abuse. Algorithms: Token Bucket (burst-friendly), Leaky Bucket (smooth), Sliding Window. Implement via Redis + Spring filter or API Gateway.", tags: ["api", "security"] },
+      { name: "HATEOAS", def: "Hypermedia As The Engine Of Application State. REST responses include links to related actions. Level 3 of Richardson Maturity Model. Spring HATEOAS library provides support.", tags: ["api", "rest"] },
+      { name: "Idempotency", def: "Repeated identical requests produce same result. GET, PUT, DELETE are idempotent. POST is not. Use idempotency keys for payment/mutation APIs to handle retries safely.", tags: ["api", "design"] },
+      { name: "Webhooks", def: "Server pushes data to client URL on event. Reverse of polling. Producer sends HTTP POST to registered URL on event trigger. Implement with retry, signature verification.", tags: ["api", "async"] },
+      { name: "CORS", def: "Cross-Origin Resource Sharing. Browser security mechanism restricting cross-domain requests. Configure `Access-Control-Allow-Origin` headers. Spring: @CrossOrigin or global WebMvcConfigurer.", tags: ["api", "security"] },
+      { name: "Content Negotiation", def: "Client indicates preferred format via `Accept` header (application/json, application/xml). Server responds via `Content-Type`. Spring MVC handles via HttpMessageConverters.", tags: ["api", "http"] },
+    ]
+  },
+  {
+    id: "messaging",
+    title: "Messaging & Event-Driven",
+    icon: "📨",
+    color: "c2",
+    terms: [
+      { name: "Message Broker", def: "Middleware decoupling producers from consumers. Examples: Kafka, RabbitMQ, ActiveMQ, AWS SQS. Enables async communication, buffering, and fan-out patterns.", tags: ["messaging", "foundation"] },
+      { name: "Apache Kafka", def: "Distributed log. Producers write to topics, consumers read from partitions. Offset tracking enables replay. Guarantees ordering within partition. Retention-based (not deletion-based).", tags: ["kafka", "foundation"] },
+      { name: "Kafka Topics & Partitions", def: "Topic = logical stream. Partition = ordered, immutable log. More partitions = more parallelism. Partition key determines which partition a message lands in.", tags: ["kafka"] },
+      { name: "Consumer Groups", def: "Multiple consumers sharing a topic. Each partition consumed by one member per group. Rebalancing on join/leave. Use for horizontal scaling of consumers.", tags: ["kafka"] },
+      { name: "Kafka KRaft Mode", def: "Kafka without Zookeeper (Kafka 3.x+). Metadata managed by Kafka controllers via Raft consensus. Simpler deployment, faster recovery. Production-ready from Kafka 3.3+.", tags: ["kafka", "advanced"] },
+      { name: "At-Least-Once / At-Most-Once / Exactly-Once", def: "At-least-once: may duplicate (safe with idempotent consumers). At-most-once: may lose. Exactly-once: hardest, Kafka supports via transactional API + idempotent producer.", tags: ["messaging", "theory"] },
+      { name: "Dead Letter Queue (DLQ)", def: "Messages that fail processing after retries go to DLQ for inspection. Essential for reliability. Prevents poison-pill messages blocking consumers.", tags: ["messaging", "reliability"] },
+      { name: "Event Sourcing", def: "State derived from an immutable sequence of events rather than current state snapshots. Audit log is the source of truth. Enables time-travel debugging and projections.", tags: ["architecture", "messaging"] },
+      { name: "CQRS", def: "Command Query Responsibility Segregation. Separate write model (commands) from read model (queries). Enables independent scaling and optimization of reads vs writes.", tags: ["architecture", "messaging"] },
+      { name: "Saga Pattern", def: "Manages distributed transactions without 2PC. Choreography (events trigger next steps) or Orchestration (central coordinator). Compensating transactions handle failures.", tags: ["architecture", "microservices"] },
+      { name: "RabbitMQ", def: "Traditional message broker with exchanges (direct, fanout, topic, headers) routing to queues. Push-based. Better for complex routing. Lower throughput than Kafka.", tags: ["messaging"] },
+      { name: "Outbox Pattern", def: "Writes events to an outbox table within the same DB transaction as business data. A relay process publishes them to the broker. Guarantees no event loss on crash.", tags: ["messaging", "reliability"] },
+    ]
+  },
+  {
+    id: "microservices",
+    title: "Microservices & Architecture",
+    icon: "🏗️",
+    color: "c3",
+    terms: [
+      { name: "Microservices vs Monolith", def: "Monolith: single deployable unit, simpler ops. Microservices: independently deployable services, polyglot, scale independently, complex ops. Don't start with microservices prematurely.", tags: ["architecture", "foundation"] },
+      { name: "Service Discovery", def: "Services find each other without hardcoded URLs. Client-side: Eureka + Ribbon. Server-side: API Gateway + registry. Kubernetes: DNS-based discovery natively.", tags: ["microservices"] },
+      { name: "API Gateway", def: "Single entry point for clients. Handles routing, auth, rate limiting, SSL termination, request aggregation. Spring Cloud Gateway, Kong, AWS API Gateway, NGINX.", tags: ["microservices"] },
+      { name: "Circuit Breaker", def: "Prevents cascading failures. States: CLOSED (normal), OPEN (failing, reject requests), HALF_OPEN (test recovery). Resilience4j is Spring's standard. Configure with failure rate thresholds.", tags: ["microservices", "reliability"] },
+      { name: "Bulkhead Pattern", def: "Isolate failures by partitioning resources (thread pools, semaphores) per downstream service. If one integration fails, it doesn't exhaust resources for others.", tags: ["microservices", "reliability"] },
+      { name: "Service Mesh", def: "Infrastructure layer for service-to-service communication: mutual TLS, observability, traffic management, retry logic. Examples: Istio, Linkerd. Sidecar proxy pattern (Envoy).", tags: ["microservices", "advanced"] },
+      { name: "12-Factor App", def: "Methodology for cloud-native apps: codebase, dependencies, config, backing services, build/release/run, processes, port binding, concurrency, disposability, dev/prod parity, logs, admin.", tags: ["architecture", "cloud"] },
+      { name: "Strangler Fig Pattern", def: "Incrementally migrate monolith to microservices. New functionality built as services; gradually strangle old code until nothing remains. Safe, incremental migration.", tags: ["architecture", "migration"] },
+      { name: "Anti-Corruption Layer (ACL)", def: "Translates between two domain models, preventing external model's concepts from leaking into your domain. Critical in legacy migration and third-party integrations.", tags: ["architecture", "design"] },
+      { name: "Domain-Driven Design (DDD)", def: "Ubiquitous Language, Bounded Contexts, Aggregates, Entities, Value Objects, Domain Events, Repositories. Aligns software model with business domain.", tags: ["architecture", "design"] },
+      { name: "Bounded Context", def: "Explicit boundary within which a domain model applies. Same term (e.g. 'Account') can mean different things in different bounded contexts. Microservices often align with bounded contexts.", tags: ["architecture", "ddd"] },
+      { name: "Two-Phase Commit (2PC)", def: "Distributed transaction protocol with prepare and commit phases. Coordinator ensures all nodes agree. High latency, single point of failure. Mostly replaced by Saga pattern in microservices.", tags: ["distributed", "advanced"] },
+    ]
+  },
+  {
+    id: "security",
+    title: "Security",
+    icon: "🔐",
+    color: "c1",
+    terms: [
+      { name: "Authentication vs Authorization", def: "AuthN: verify identity (who you are). AuthZ: verify permissions (what you can do). Authentication precedes authorization. JWT carries both identity and claims.", tags: ["security", "foundation"] },
+      { name: "JWT (JSON Web Token)", def: "Header.Payload.Signature — base64 encoded, signed (not encrypted). Stateless. Validate signature, expiry (exp), issuer (iss). Don't store sensitive data in payload — it's readable.", tags: ["security", "jwt"] },
+      { name: "OAuth2 / OpenID Connect", def: "OAuth2: authorization framework (delegated access). OIDC: identity layer on top of OAuth2. Flows: Authorization Code (web), Client Credentials (M2M), PKCE (mobile/SPA).", tags: ["security", "oauth"] },
+      { name: "SQL Injection", def: "Attacker injects SQL via input. Prevention: parameterized queries / prepared statements. JPA/Hibernate uses them automatically. Never concatenate user input into SQL strings.", tags: ["security", "vulnerabilities"] },
+      { name: "OWASP Top 10", def: "Most critical web app security risks: Injection, Broken Auth, Sensitive Data Exposure, XXE, Broken Access Control, Misconfiguration, XSS, Insecure Deserialization, Vuln Components, Insufficient Logging.", tags: ["security", "foundation"] },
+      { name: "Encryption at Rest vs In Transit", def: "In Transit: TLS/HTTPS encrypts data over network. At Rest: encrypted storage (AES-256). Both required for sensitive data compliance (PCI-DSS, GDPR).", tags: ["security", "compliance"] },
+      { name: "Password Hashing", def: "Never store plaintext passwords. Use bcrypt, argon2, or scrypt — slow by design to resist brute force. Spring Security BCryptPasswordEncoder implements this.", tags: ["security"] },
+      { name: "CSRF (Cross-Site Request Forgery)", def: "Attacker tricks authenticated user into making unintended requests. Prevention: CSRF tokens, SameSite cookie attribute. REST APIs using JWT are generally safe (no cookies).", tags: ["security", "vulnerabilities"] },
+      { name: "Secrets Management", def: "Never hardcode credentials. Use environment variables, Vault (HashiCorp), AWS Secrets Manager, or Kubernetes Secrets. Spring Cloud Vault integrates with Spring apps.", tags: ["security", "devops"] },
+      { name: "Principle of Least Privilege", def: "Entities (users, services, processes) should have only minimum permissions needed. DB users shouldn't be DBA. Service accounts scoped to required resources only.", tags: ["security", "design"] },
+      { name: "mTLS (Mutual TLS)", def: "Both client and server present certificates to verify each other. Used in service mesh for zero-trust service-to-service auth. Stronger than one-way TLS.", tags: ["security", "advanced"] },
+    ]
+  },
+  {
+    id: "performance",
+    title: "Performance & Scalability",
+    icon: "⚡",
+    color: "c2",
+    terms: [
+      { name: "Caching Strategies", def: "Cache-aside (app checks cache first), Write-through (write cache + DB), Write-behind (async DB write), Read-through. Invalidation is the hardest problem. TTL + event-based invalidation.", tags: ["performance", "caching"] },
+      { name: "Horizontal vs Vertical Scaling", def: "Vertical: bigger machine (CPU, RAM). Horizontal: more machines behind load balancer. Horizontal preferred for fault tolerance. Stateless services scale horizontally easily.", tags: ["scalability"] },
+      { name: "Load Balancing", def: "Distributes traffic across instances. Algorithms: Round Robin, Least Connections, IP Hash (session affinity). L4 (TCP) vs L7 (HTTP/application-aware). NGINX, HAProxy, AWS ELB.", tags: ["scalability"] },
+      { name: "Lazy Loading vs Eager Loading", def: "Lazy: load related data on access (default JPA). Eager: load immediately with parent. Lazy can cause N+1 in loops. Use JOIN FETCH or @EntityGraph to batch-load when needed.", tags: ["performance", "jpa"] },
+      { name: "N+1 Query Problem", def: "1 query to fetch N entities + N queries for each relation. Solution: JOIN FETCH, @BatchSize, @EntityGraph, or DTO projections with a single query.", tags: ["performance", "database"] },
+      { name: "Async Processing", def: "Offload work to background threads/queues. @Async (Spring), CompletableFuture, message queues. Improves response time for long operations like email sending, report generation.", tags: ["performance", "async"] },
+      { name: "Profiling & APM", def: "JProfiler, VisualVM for Java profiling. APM: Dynatrace, New Relic, Datadog. Identify CPU hotspots, memory leaks, slow queries, thread contention before optimizing.", tags: ["performance", "observability"] },
+      { name: "CDN (Content Delivery Network)", def: "Serves static assets from edge nodes close to users. Reduces latency, origin server load. For APIs, CDN can cache GET responses with proper cache-control headers.", tags: ["performance", "infrastructure"] },
+      { name: "Back-pressure", def: "Mechanism for consumers to signal producers to slow down. Prevents buffer overflow and OOM. Reactive streams (Project Reactor) handle back-pressure natively.", tags: ["performance", "reactive"] },
+      { name: "JVM Tuning", def: "Heap sizing (-Xms, -Xmx), GC selection (G1GC default, ZGC for low latency), GC logging, heap dumps. Monitor with JConsole/Actuator. Tune based on profiling data, not guesses.", tags: ["performance", "java"] },
+      { name: "Database Read Replicas", def: "Read-heavy workloads: route read queries to replicas, writes to primary. Spring: @Transactional(readOnly=true) + AbstractRoutingDataSource pattern. Replication lag is the key consideration.", tags: ["performance", "database"] },
+    ]
+  },
+  {
+    id: "devops",
+    title: "DevOps, CI/CD & Cloud",
+    icon: "🚀",
+    color: "c3",
+    terms: [
+      { name: "CI/CD Pipeline", def: "Continuous Integration: auto build + test on every commit. Continuous Delivery/Deployment: auto ship to staging/prod. Stages: build → test → scan → package → deploy → verify.", tags: ["devops", "foundation"] },
+      { name: "Docker", def: "Containerization. Dockerfile defines image. Container = isolated process with its own filesystem. Images are immutable layers. docker-compose for local multi-service orchestration.", tags: ["devops", "containers"] },
+      { name: "Kubernetes (K8s)", def: "Container orchestration. Pods (smallest unit), Deployments (manages pod replicas), Services (stable networking), Ingress (external access), ConfigMap/Secrets. kubectl is the CLI.", tags: ["devops", "kubernetes"] },
+      { name: "Helm Charts", def: "Kubernetes package manager. Templates with values.yaml for configuration. Makes K8s deployments reusable and versioned. Upgrade/rollback via `helm upgrade/rollback`.", tags: ["devops", "kubernetes"] },
+      { name: "Infrastructure as Code (IaC)", def: "Manage infrastructure via code, not manual clicks. Terraform (provider-agnostic, declarative), Pulumi (code-first), AWS CDK. Version-controlled, reproducible environments.", tags: ["devops", "cloud"] },
+      { name: "Blue-Green Deployment", def: "Two identical environments. Blue = current prod, Green = new version. Switch traffic to Green after testing. Instant rollback by switching back. Zero downtime.", tags: ["devops", "deployment"] },
+      { name: "Canary Deployment", def: "Route small % of traffic to new version. Monitor metrics. Gradually increase if healthy. Rollback if error rates spike. Kubernetes + Istio support this natively.", tags: ["devops", "deployment"] },
+      { name: "12-Factor Config", def: "Config (DB URLs, API keys) should come from environment, not code. `@Value` + environment variables or Spring Cloud Config Server. Never commit secrets to repo.", tags: ["devops", "cloud"] },
+      { name: "Log Aggregation (ELK Stack)", def: "Elasticsearch (store/search), Logstash (ingest/transform), Kibana (visualize). Alternative: Grafana Loki (lighter). Structured JSON logging is preferred over plain text.", tags: ["devops", "observability"] },
+      { name: "Service Health Checks", def: "Liveness: is app alive? (restart if failing). Readiness: is app ready to serve traffic? (remove from load balancer if failing). Kubernetes probes use Spring Actuator /health endpoint.", tags: ["devops", "kubernetes"] },
+      { name: "Feature Flags", def: "Toggle features without deployment. Gradual rollout, A/B testing, kill switches. LaunchDarkly, Unleash, custom DB-backed flags. Decouple deploy from release.", tags: ["devops", "deployment"] },
+    ]
+  },
+  {
+    id: "observability",
+    title: "Observability & Monitoring",
+    icon: "📊",
+    color: "c1",
+    terms: [
+      { name: "The Three Pillars of Observability", def: "Logs (what happened), Metrics (how system behaves over time), Traces (how a request flowed through services). All three needed for production debugging.", tags: ["observability", "foundation"] },
+      { name: "Structured Logging", def: "JSON-formatted logs with consistent fields (timestamp, level, service, traceId, message). Enables log queries. Use SLF4J + Logback/Log4j2. MDC for correlation IDs.", tags: ["observability", "logging"] },
+      { name: "Distributed Tracing", def: "Track a request's journey across services. TraceId propagated via headers. Spans represent operations within a trace. Tools: Jaeger, Zipkin, AWS X-Ray, OpenTelemetry.", tags: ["observability", "tracing"] },
+      { name: "OpenTelemetry", def: "Vendor-neutral standard for traces, metrics, logs. Single instrumentation → export to any backend. Spring Boot 3+ has native support. The future of observability instrumentation.", tags: ["observability", "standard"] },
+      { name: "Prometheus & Grafana", def: "Prometheus: pull-based metrics scraping, PromQL query language. Grafana: dashboards. Spring Actuator + Micrometer exposes Prometheus-compatible metrics at /actuator/prometheus.", tags: ["observability", "metrics"] },
+      { name: "SLI / SLO / SLA", def: "SLI: metric measuring service level (latency p99, availability). SLO: target for SLI (99.9% uptime). SLA: contract with consequences. Error budgets derived from SLOs.", tags: ["observability", "reliability"] },
+      { name: "Alerting & On-Call", def: "Alert on SLO breaches, not raw metrics. Avoid alert fatigue. PagerDuty, OpsGenie for on-call rotation. Runbooks document remediation steps. Alert on symptoms, not causes.", tags: ["observability", "ops"] },
+      { name: "Correlation ID / Request ID", def: "Unique ID generated at entry point (Gateway), propagated via HTTP headers and log MDC through all services. Enables correlating logs across services for a single request.", tags: ["observability", "design"] },
+    ]
+  },
+  {
+    id: "design-patterns",
+    title: "Design Patterns",
+    icon: "🎨",
+    color: "c2",
+    terms: [
+      { name: "Singleton Pattern", def: "Ensure one instance per JVM. Private constructor + static factory. Thread-safe via enum or double-checked locking. Spring beans are Singleton by default.", tags: ["patterns", "creational"] },
+      { name: "Factory / Factory Method", def: "Delegate object creation to subclasses or a factory method. Decouples creation from usage. Used extensively in Spring (BeanFactory, SqlSessionFactory).", tags: ["patterns", "creational"] },
+      { name: "Builder Pattern", def: "Construct complex objects step-by-step. Fluent API. @Builder (Lombok). Avoids telescoping constructors. Immutable objects with many optional fields.", tags: ["patterns", "creational"] },
+      { name: "Strategy Pattern", def: "Define family of algorithms, encapsulate each, make interchangeable. Eliminates conditionals. Example: different payment processors, sorting algorithms, fee calculators.", tags: ["patterns", "behavioral"] },
+      { name: "Observer Pattern", def: "Subject notifies observers of state changes. Loose coupling. Java: EventListener. Spring: ApplicationEvent + ApplicationEventPublisher. Foundation of event-driven patterns.", tags: ["patterns", "behavioral"] },
+      { name: "Decorator Pattern", def: "Wrap objects to add behavior without modifying class. Composable. Java I/O streams are classic example. Spring Security filter chain.", tags: ["patterns", "structural"] },
+      { name: "Proxy Pattern", def: "Surrogate that controls access to real object. Spring AOP uses JDK dynamic proxies or CGLIB. Used for lazy init, access control, logging, caching (@Cacheable).", tags: ["patterns", "structural"] },
+      { name: "Template Method Pattern", def: "Define algorithm skeleton in base class, defer steps to subclasses. Spring's JdbcTemplate, RestTemplate use this. Separates invariant from variant behavior.", tags: ["patterns", "behavioral"] },
+      { name: "Repository Pattern", def: "Abstracts data access behind an interface. Business logic doesn't know about DB. Spring Data JPA repositories implement this. Enables swapping storage without touching domain logic.", tags: ["patterns", "data"] },
+      { name: "Command Pattern", def: "Encapsulate request as object. Enables queuing, logging, undo. Spring @Async + task queues. CQRS Command objects. Microservice command handlers.", tags: ["patterns", "behavioral"] },
+    ]
+  },
+  {
+    id: "data-structures",
+    title: "Data Structures & Algorithms",
+    icon: "🧮",
+    color: "c3",
+    terms: [
+      { name: "Big O Notation", def: "Algorithm efficiency expressed as function of input size n. O(1) constant, O(log n) logarithmic, O(n) linear, O(n log n) linearithmic, O(n²) quadratic. Analyze worst-case typically.", tags: ["algorithms", "foundation"] },
+      { name: "Arrays & ArrayLists", def: "Contiguous memory. O(1) random access, O(n) insert/delete at middle. ArrayList: dynamic resizing (amortized O(1) append). Cache-friendly due to locality.", tags: ["data-structures"] },
+      { name: "LinkedList", def: "Nodes with pointers. O(1) insert/delete at known position. O(n) search. High memory overhead (pointers). Use when frequent insertion/deletion at ends outweighs search cost.", tags: ["data-structures"] },
+      { name: "Stack & Queue", def: "Stack: LIFO. Queue: FIFO. Deque: both ends. Stack uses: call stack, DFS, expression parsing. Queue uses: BFS, task scheduling, producer-consumer.", tags: ["data-structures"] },
+      { name: "HashMap / HashSet", def: "Average O(1) get/put/contains via hashing. Worst O(n) with collisions. Java 8: tree bins at threshold 8. HashSet backed by HashMap. Not ordered.", tags: ["data-structures"] },
+      { name: "Trees", def: "BST: O(log n) balanced. Binary search, in-order gives sorted sequence. Red-Black Tree (TreeMap): self-balancing. Trie: prefix-based string lookup. Heap: priority queue.", tags: ["data-structures"] },
+      { name: "Sorting Algorithms", def: "QuickSort: O(n log n) avg, O(n²) worst. MergeSort: O(n log n) stable. HeapSort: O(n log n), in-place. Java Arrays.sort() uses TimSort (hybrid merge/insertion) for objects.", tags: ["algorithms"] },
+      { name: "Graph Algorithms", def: "BFS: shortest path (unweighted), level-order. DFS: cycle detection, topological sort. Dijkstra: weighted shortest path. Used in service dependency analysis, network routing.", tags: ["algorithms"] },
+      { name: "Dynamic Programming", def: "Break problems into overlapping subproblems, store solutions (memoization/tabulation). Knapsack, LCS, coin change. Recognize: optimal substructure + overlapping subproblems.", tags: ["algorithms"] },
+      { name: "Binary Search", def: "O(log n) search on sorted data. Divide and conquer. Variations: first/last occurrence, search in rotated array. Also applied to search space (not just arrays).", tags: ["algorithms"] },
+      { name: "Sliding Window / Two Pointers", def: "Efficient array/string techniques. Sliding window: subarray problems (max sum, anagram). Two pointers: sorted arrays, palindromes. Often reduces O(n²) to O(n).", tags: ["algorithms"] },
+    ]
+  },
+  {
+    id: "testing",
+    title: "Testing",
+    icon: "🧪",
+    color: "c1",
+    terms: [
+      { name: "Testing Pyramid", def: "Unit tests (fast, many) > Integration tests (slower, some) > E2E tests (slowest, few). More tests at bottom = faster feedback. Don't invert the pyramid.", tags: ["testing", "foundation"] },
+      { name: "Unit Testing (JUnit 5)", def: "@Test, @BeforeEach, @AfterEach, @ParameterizedTest, @ExtendWith. Test behavior not implementation. Given-When-Then structure. Fast, isolated, no external dependencies.", tags: ["testing", "java"] },
+      { name: "Mockito", def: "Mock dependencies in unit tests. `@Mock`, `@InjectMocks`, `@Spy`. `when().thenReturn()`, `verify()`. Use Mockito judiciously — heavy mocking often signals design issues.", tags: ["testing", "java"] },
+      { name: "Integration Testing (@SpringBootTest)", def: "Loads full or partial Spring context. `@SpringBootTest`, `@DataJpaTest`, `@WebMvcTest`. Use TestContainers for real DB in CI. Slower but tests wiring.", tags: ["testing", "spring"] },
+      { name: "TestContainers", def: "Spin up real Docker containers (Postgres, Kafka, Redis) in tests. Integration tests against real infrastructure. Disposable, reproducible. Java library with JUnit 5 integration.", tags: ["testing", "advanced"] },
+      { name: "Contract Testing (Pact)", def: "Consumer defines expected API contract. Provider verifies it. Prevents breaking changes without full E2E suites. Critical for microservices teams moving independently.", tags: ["testing", "microservices"] },
+      { name: "Test Coverage", def: "% of code executed during tests. JaCoCo for Java. Aim 80%+ for critical paths. 100% coverage ≠ no bugs. Focus on behavior coverage over line coverage.", tags: ["testing"] },
+      { name: "TDD (Test-Driven Development)", def: "Red → Green → Refactor. Write failing test first, then minimal code to pass, then refactor. Drives better design, forces testability, built-in regression suite.", tags: ["testing", "methodology"] },
+    ]
+  },
+  ,
+  {
+    id: "computer-architecture",
+    title: "Computer Architecture",
+    icon: "🖥️",
+    color: "c2",
+    terms: [
+      { name: "Binary & Number Systems", def: "Computers operate in base-2 (binary). 0b1010 = 10 decimal = 0xA hex. Bit: single 0/1. Byte: 8 bits. Conversions: decimal→binary via repeated division by 2. Example: 13 = 8+4+1 = 0b1101.", tags: ["architecture", "foundation"] },
+      { name: "Two's Complement", def: "How negative integers are represented in binary. Invert all bits then add 1. Example: -5 in 8-bit = ~00000101 + 1 = 11111010 + 1 = 11111011. This is why Java int range is -2^31 to 2^31-1.", tags: ["architecture", "foundation"] },
+      { name: "Bitwise Operators", def: "AND (&), OR (|), XOR (^), NOT (~), left shift (<<), right shift (>>). Example: check if number is even: `n & 1 == 0`. Multiply by 2: `n << 1`. Fast because hardware-native. Used in flags, hashing, crypto.", tags: ["architecture", "programming"] },
+      { name: "CPU Architecture (Von Neumann)", def: "CPU + Memory + I/O + Bus. Fetch instruction from memory → Decode → Execute → Writeback (FDEW cycle). ALU does arithmetic. Registers are on-chip ultra-fast storage. Program Counter tracks next instruction.", tags: ["architecture", "foundation"] },
+      { name: "CPU Registers", def: "Tiny on-chip storage (nanoseconds). x86-64: RAX, RBX, RCX, RDX (general), RSP (stack pointer), RBP (base pointer), RIP (instruction pointer). JVM has its own virtual registers per method frame.", tags: ["architecture"] },
+      { name: "Memory Hierarchy", def: "Registers (< 1ns) → L1 Cache (1-4ns, 32-64KB) → L2 Cache (4-12ns, 256KB-1MB) → L3 Cache (12-40ns, 4-32MB) → RAM (60-100ns, GBs) → SSD (100µs) → HDD (10ms). Each level: bigger but slower.", tags: ["architecture", "performance"] },
+      { name: "CPU Cache (L1/L2/L3)", def: "Hardware-managed fast memory close to CPU. Cache line = 64 bytes. Cache hit: data found in cache. Cache miss: must fetch from RAM (costly). Spatial locality (nearby data) and temporal locality (recent data) improve hit rate.", tags: ["architecture", "performance"] },
+      { name: "Cache Coherence", def: "In multi-core CPUs, each core has its own L1/L2 cache. If Core 1 updates a value, Core 2's cache must be invalidated. MESI protocol (Modified, Exclusive, Shared, Invalid) manages this. Source of JVM volatile semantics.", tags: ["architecture", "concurrency"] },
+      { name: "Cache Line & False Sharing", def: "64-byte cache line is the unit of transfer. If two threads update different variables on the same cache line, they cause unnecessary cache invalidations — false sharing. Fix: pad structs or use @Contended annotation in Java.", tags: ["architecture", "performance"] },
+      { name: "CPU Pipelining", def: "Instruction execution split into stages (Fetch, Decode, Execute, Writeback) running in parallel like an assembly line. 4-stage pipeline = 4 instructions in flight. Pipeline hazards (data, control, structural) stall it.", tags: ["architecture"] },
+      { name: "Branch Prediction", def: "CPU speculatively executes code before knowing branch outcome. Modern CPUs ~95%+ accurate. Misprediction flushes pipeline (10-20 cycle penalty). Sorting data before branching can improve prediction (famous StackOverflow example).", tags: ["architecture", "performance"] },
+      { name: "Out-of-Order Execution", def: "CPU reorders instructions internally to avoid stalls, executes independent instructions early. Transparent to programmer (single thread). Multi-threaded: memory ordering guarantees via CPU memory barriers / Java volatile.", tags: ["architecture", "concurrency"] },
+      { name: "SIMD (Single Instruction Multiple Data)", def: "Execute same operation on multiple data items simultaneously. SSE, AVX instructions. JVM JIT auto-vectorizes eligible loops. Foundation of NumPy, video processing, ML inference speed. Example: sum 8 floats in one instruction.", tags: ["architecture", "performance"] },
+      { name: "Stack vs Heap Memory", def: "Stack: LIFO, per-thread, holds method frames (local vars, return addresses), auto-reclaimed on return. Very fast. Heap: shared, GC-managed, holds Java objects. StackOverflowError = too deep recursion. OutOfMemoryError = heap exhausted.", tags: ["architecture", "java"] },
+      { name: "Stack Frame", def: "Each method call pushes a frame: local variables, operand stack (in JVM), return address. Java Stack: `main → serviceMethod → repositoryMethod`. Deep recursion fills stack. Tail call optimization (not in Java JVM) reuses frames.", tags: ["architecture", "java"] },
+      { name: "Virtual Memory & Paging", def: "OS abstraction giving each process its own address space. Physical RAM divided into 4KB pages. Page table maps virtual→physical. Page fault: access to page not in RAM — OS loads from disk. TLB caches recent translations.", tags: ["architecture", "os"] },
+      { name: "Memory Alignment", def: "Data accessed at addresses that are multiples of its size. int at address divisible by 4. Misaligned access can cause performance penalty or hardware exception. JVM ensures alignment automatically.", tags: ["architecture"] },
+      { name: "Endianness", def: "Byte order in multi-byte values. Big-endian: most significant byte first (network byte order). Little-endian: least significant byte first (x86 CPUs). Java: big-endian. Matters when parsing binary protocols (TCP headers, Kafka wire format).", tags: ["architecture", "networking"] },
+      { name: "Instruction Set Architecture (ISA)", def: "Contract between hardware and software defining instructions the CPU understands. x86-64 (CISC, Intel/AMD), ARM (RISC, mobile/Apple Silicon), RISC-V (open-source). JVM bytecode is a virtual ISA.", tags: ["architecture"] },
+      { name: "RISC vs CISC", def: "RISC (ARM): few simple instructions, load-store model, faster clock. CISC (x86): many complex instructions, memory operands allowed. Modern x86 CPUs internally decode CISC to RISC-like micro-ops.", tags: ["architecture"] },
+      { name: "Interrupts & Exceptions", def: "Interrupts: async signal from hardware (keyboard press, timer) to CPU. CPU pauses, runs Interrupt Service Routine (ISR). Exceptions: sync events (divide by zero, page fault). Hardware mechanism that enables OS multitasking and I/O.", tags: ["architecture", "os"] },
+      { name: "DMA (Direct Memory Access)", def: "Hardware mechanism allowing I/O devices to transfer data directly to/from RAM without CPU involvement. CPU sets up DMA controller, goes off to do other work, gets an interrupt when transfer completes. Enables high-throughput I/O (NIC, disk).", tags: ["architecture", "performance"] },
+      { name: "CPU Cores & Hyper-Threading", def: "Multi-core: physically separate execution units. Hyper-Threading (Intel): 2 hardware threads per core sharing execution units, appears as 2 logical CPUs. Java thread pool sizing: typically based on available processors via `Runtime.getRuntime().availableProcessors()`.", tags: ["architecture", "concurrency"] },
+    ]
+  },
+  {
+    id: "operating-systems",
+    title: "Operating Systems",
+    icon: "⚙️",
+    color: "c3",
+    terms: [
+      { name: "Process vs Thread", def: "Process: independent execution unit with own memory space (heap, stack, file descriptors). Thread: lightweight unit within a process, shares heap. Context switch between processes is expensive; between threads cheaper. Java threads map 1:1 to OS threads.", tags: ["os", "concurrency"] },
+      { name: "Process States", def: "New → Ready → Running → Waiting → Terminated. Scheduler moves processes between Ready and Running. I/O blocks process → Waiting. OS kernel manages state transitions.", tags: ["os"] },
+      { name: "Context Switching", def: "OS saves CPU state (registers, PC) of current thread, loads state of next thread. Costs: ~1-10µs. Too many threads → too many context switches → CPU wastes time switching rather than doing work. Why thread pools have limits.", tags: ["os", "performance"] },
+      { name: "Scheduling Algorithms", def: "Round Robin: equal time slices, fair. Priority-based: higher priority runs first (starvation risk). CFS (Linux Completely Fair Scheduler): virtual runtime balancing. Java: OS-controlled; you set thread priority as hints, not guarantees.", tags: ["os"] },
+      { name: "Deadlock", def: "Four conditions (Coffman): Mutual Exclusion, Hold and Wait, No Preemption, Circular Wait. Prevention: lock ordering (always acquire locks in same order). Detection: timeout + retry. Example: Thread A holds lock1, needs lock2; Thread B holds lock2, needs lock1.", tags: ["os", "concurrency"] },
+      { name: "Mutex vs Semaphore", def: "Mutex: binary lock, owner-exclusive, must be released by acquirer. Semaphore: counter-based, controls access to N resources. Binary semaphore ≠ mutex (no ownership). Java: synchronized/ReentrantLock ≈ mutex. Semaphore class for N-slot control.", tags: ["os", "concurrency"] },
+      { name: "Race Condition", def: "Outcome depends on timing of concurrent operations. Example: two threads both read `balance=100`, both add 50, both write 150 → final is 150 not 200. Fix: synchronization, atomic operations, immutability.", tags: ["os", "concurrency"] },
+      { name: "Spinlock vs Blocking Lock", def: "Spinlock: thread busily loops checking until lock free. Fast for very short waits. Blocking: thread yields CPU if lock unavailable. Java synchronized = blocking (OS park). Spinlock wastes CPU; blocking wastes context switch time.", tags: ["os", "concurrency"] },
+      { name: "Memory Management (Malloc/Free)", def: "C-style manual. OS allocates virtual memory pages via mmap/brk. malloc manages a free list within the heap segment. Java replaces this entirely with GC. Understanding it explains why off-heap (ByteBuffer.allocateDirect) is useful for DB/networking.", tags: ["os", "memory"] },
+      { name: "Garbage Collection (GC)", def: "Automatic memory reclamation. Mark-and-sweep: trace live objects, free unreachable. Generational hypothesis: most objects die young. JVM Generations: Eden → Survivor → Old Gen. GC pauses stop the world briefly. G1GC, ZGC minimize pauses.", tags: ["os", "java", "performance"] },
+      { name: "Virtual Memory & Swap", def: "OS extends RAM using disk (swap space). Processes see contiguous virtual address space. If RAM full, OS swaps cold pages to disk. JVM on swap = disaster (GC pauses become seconds). Always pin JVM heap in RAM for production services.", tags: ["os", "memory"] },
+      { name: "System Calls (syscalls)", def: "Interface between user-space and kernel. Examples: read(), write(), socket(), fork(), mmap(), epoll_wait(). Every file/network/process operation goes through syscalls. Expensive (mode switch). Java NIO uses epoll for non-blocking I/O on Linux.", tags: ["os"] },
+      { name: "File Descriptors", def: "Integer handle referencing open file/socket/pipe in kernel. Process has a table of FDs. Limit: ulimit -n (typical 1024 or 65535). Leak = running out of FDs, causing I/O failures. Always close resources (try-with-resources in Java).", tags: ["os"] },
+      { name: "I/O Models: Blocking vs Non-Blocking", def: "Blocking: thread waits for I/O to complete (simple but wastes threads). Non-blocking: thread checks if I/O ready, does other work if not. Async I/O: OS notifies when complete. Java NIO (Selector), Netty, WebFlux use non-blocking I/O.", tags: ["os", "performance"] },
+      { name: "epoll / kqueue / IOCP", def: "OS-level event notification mechanisms. epoll (Linux): register many FDs, get notified when ready. kqueue (BSD/macOS). IOCP (Windows). Foundation of event loops in Node.js, Netty, Nginx. Enable handling 10K+ connections with few threads.", tags: ["os", "networking"] },
+      { name: "Copy-on-Write (CoW)", def: "Optimization: parent and child process share same memory pages initially. Only when a write occurs does OS copy the page. Used by `fork()`. Redis background save uses fork + CoW. Also: Java CopyOnWriteArrayList for read-heavy concurrent collections.", tags: ["os", "performance"] },
+      { name: "Memory-Mapped Files (mmap)", def: "Map file contents into virtual address space. Read/write as if array in memory; OS handles paging to/from disk. Used by Kafka (log segments), databases. Very efficient for sequential scans of large files.", tags: ["os", "performance"] },
+      { name: "Signals (UNIX)", def: "Async notifications to processes: SIGTERM (graceful shutdown), SIGKILL (immediate kill), SIGHUP (reload config), SIGSEGV (segfault). Spring Boot listens to SIGTERM for graceful shutdown. Docker stop sends SIGTERM then SIGKILL after timeout.", tags: ["os"] },
+      { name: "Inter-Process Communication (IPC)", def: "Pipes (|), named pipes (FIFO), message queues, shared memory, semaphores, sockets. Sockets work across machines too. Java: rarely manual IPC — prefer messaging systems (Kafka) or HTTP for inter-service communication.", tags: ["os"] },
+      { name: "Process Isolation & Containers", def: "Linux namespaces (pid, network, mount, user) isolate process views. cgroups limit CPU/memory. Docker uses namespaces + cgroups to create lightweight 'containers' — processes that think they're alone on the machine.", tags: ["os", "devops"] },
+    ]
+  },
+  {
+    id: "networking",
+    title: "Networking Fundamentals",
+    icon: "🌐",
+    color: "c1",
+    terms: [
+      { name: "OSI Model (7 Layers)", def: "Physical → Data Link → Network → Transport → Session → Presentation → Application. Mnemonic: Please Do Not Throw Sausage Pizza Away. TCP operates at layer 4. HTTP at layer 7. IP at layer 3. Each layer adds a header.", tags: ["networking", "foundation"] },
+      { name: "TCP/IP Model", def: "Simplified 4-layer model: Network Access (Ethernet) → Internet (IP) → Transport (TCP/UDP) → Application (HTTP, DNS, SMTP). The real-world model used by the internet.", tags: ["networking", "foundation"] },
+      { name: "IP Addressing (IPv4/IPv6)", def: "IPv4: 32-bit, dotted decimal (192.168.1.1). ~4.3 billion addresses, exhausted. IPv6: 128-bit, hex (2001:db8::1). Private ranges: 10.x.x.x, 172.16.x.x, 192.168.x.x. CIDR: 192.168.1.0/24 = 256 addresses.", tags: ["networking"] },
+      { name: "TCP (Transmission Control Protocol)", def: "Reliable, ordered, connection-oriented. 3-way handshake (SYN→SYN-ACK→ACK). Flow control (sliding window). Congestion control (slow start, AIMD). Error detection via checksum + retransmit. Used for HTTP, JDBC, most backend protocols.", tags: ["networking", "foundation"] },
+      { name: "TCP 3-Way Handshake", def: "Client SYN → Server SYN-ACK → Client ACK. Establishes sequence numbers. Takes 1 RTT before data flows. TCP connection teardown: 4-way FIN exchange. Expensive for short-lived requests → HTTP keep-alive, connection pooling.", tags: ["networking"] },
+      { name: "UDP (User Datagram Protocol)", def: "Connectionless, no guaranteed delivery or ordering. Low overhead. Used where speed > reliability: DNS (one packet), video streaming, gaming, QUIC. Application handles retransmit if needed. No 3-way handshake overhead.", tags: ["networking"] },
+      { name: "HTTP/1.1 vs HTTP/2 vs HTTP/3", def: "HTTP/1.1: text-based, one request per connection (keep-alive helps). HTTP/2: binary, multiplexed streams over one TCP connection, header compression. HTTP/3: runs over QUIC (UDP), avoids TCP head-of-line blocking. gRPC uses HTTP/2.", tags: ["networking", "api"] },
+      { name: "DNS (Domain Name System)", def: "Translates hostnames to IP addresses. Recursive resolver → Root server → TLD server → Authoritative server. TTL controls caching. A record (IPv4), AAAA (IPv6), CNAME (alias), MX (mail), SRV (service discovery). Java: InetAddress.getByName().", tags: ["networking"] },
+      { name: "Ports & Sockets", def: "Port: 16-bit number (0-65535) identifying service on a host. Well-known: HTTP=80, HTTPS=443, MySQL=3306, Postgres=5432, Redis=6379, Kafka=9092. Socket = IP:Port pair. Java ServerSocket listens; Socket connects.", tags: ["networking"] },
+      { name: "TLS/SSL Handshake", def: "Client Hello (supported ciphers) → Server Hello + Certificate → Client verifies cert, sends key exchange → Both derive session keys → Encrypted data flows. TLS 1.3 reduces to 1-RTT. Certificates use asymmetric crypto; session uses symmetric.", tags: ["networking", "security"] },
+      { name: "HTTP Headers", def: "Request: Host, Authorization, Content-Type, Accept, Cookie, X-Request-ID. Response: Content-Type, Cache-Control, Set-Cookie, Location (redirect), X-RateLimit-*. Headers are case-insensitive in HTTP. Spring: @RequestHeader extracts them.", tags: ["networking", "api"] },
+      { name: "TCP Connection Pooling", def: "Creating TCP connections is expensive (handshake + TLS). HikariCP (DB), HttpClient, RestTemplate, WebClient all maintain pools of reusable connections. Key settings: max-connections, keep-alive, socket timeout, connect timeout.", tags: ["networking", "performance"] },
+      { name: "Load Balancer (L4 vs L7)", def: "L4 (TCP): routes by IP:port, fast, no content awareness. L7 (HTTP): routes by URL path, headers, cookies — enables sticky sessions, path-based routing, SSL termination. AWS ALB=L7, NLB=L4.", tags: ["networking", "scalability"] },
+      { name: "NAT (Network Address Translation)", def: "Maps private IPs to public IPs. Enables many devices to share one public IP. PAT (port address translation) adds port numbers. AWS VPC, Docker bridge network use NAT. Complicates direct server-to-server comms (why service discovery is needed).", tags: ["networking"] },
+      { name: "Firewall & Security Groups", def: "Controls inbound/outbound traffic by IP/port/protocol rules. AWS Security Groups = stateful firewall. NACLs = stateless. Principle: deny all, allow only what's needed. Backend services should never be directly internet-accessible.", tags: ["networking", "security"] },
+      { name: "Latency vs Bandwidth vs Throughput", def: "Latency: time for one packet to travel (RTT). Bandwidth: max data capacity of link. Throughput: actual data transferred per second. High bandwidth ≠ low latency. Optimize for both: parallel requests exploit bandwidth; caching and co-location reduce latency.", tags: ["networking", "performance"] },
+      { name: "Wireshark & tcpdump", def: "Network packet capture tools. tcpdump: CLI, `tcpdump -i eth0 port 8080`. Wireshark: GUI with protocol dissection. Invaluable for debugging TLS, TCP retransmits, latency spikes. Every backend engineer should know the basics.", tags: ["networking"] },
+      { name: "WebSockets", def: "Full-duplex persistent connection over TCP, upgraded from HTTP via handshake (101 Switching Protocols). Enables real-time bi-directional communication: chat, live dashboards, stock tickers. Spring: @ServerEndpoint or spring-websocket.", tags: ["networking", "api"] },
+      { name: "Reverse Proxy", def: "Sits in front of backend servers, forwards client requests. Provides SSL termination, load balancing, caching, DDoS protection. NGINX, HAProxy, Envoy are common. Contrasts with forward proxy (client-side).", tags: ["networking", "architecture"] },
+      { name: "Packet Loss & Retransmission", def: "TCP detects loss via timeout or 3 duplicate ACKs → retransmits. Loss → congestion window shrinks. On AWS, inter-AZ drops are ~0%, but WAN links see 0.1-1% loss which multiplies latency. Monitor via /proc/net/snmp or Datadog network metrics.", tags: ["networking", "performance"] },
+    ]
+  },
+  {
+    id: "programming-fundamentals",
+    title: "Programming Paradigms & Fundamentals",
+    icon: "💡",
+    color: "c2",
+    terms: [
+      { name: "Imperative vs Declarative", def: "Imperative: how to do it (loops, steps). Declarative: what you want (SQL, HTML, Stream API). Example: imperative = `for loop filtering list`; declarative = `list.stream().filter(x -> x.age > 18).collect()`. Declarative is usually more readable.", tags: ["programming", "foundation"] },
+      { name: "Procedural Programming", def: "Code organized as procedures/functions called in sequence. C is procedural. Evolved into OOP for better modeling complex domains. Still relevant for scripting, system programming, performance-critical code.", tags: ["programming"] },
+      { name: "Functional Programming (FP)", def: "Functions as first-class citizens, no side effects (pure functions), immutability, function composition. Java 8+ supports FP with lambdas, streams, Optional. Pure functions are trivially testable and parallelizable.", tags: ["programming", "foundation"] },
+      { name: "Pure Functions", def: "Same input always gives same output. No side effects (no I/O, no state mutation). Example: `int add(int a, int b) { return a + b; }`. Pure functions are thread-safe by definition and easy to test.", tags: ["programming", "functional"] },
+      { name: "Immutability", def: "Once created, object state cannot change. String in Java is immutable — enables string pool. Benefits: thread safety (no synchronization needed), safe sharing, easier reasoning. Tradeoff: allocation overhead. Record classes in Java 16+ enforce immutability.", tags: ["programming", "concurrency"] },
+      { name: "First-Class Functions", def: "Functions treated as values: passed as arguments, returned from functions, assigned to variables. Java: lambda expressions and method references are first-class. Enables callbacks, strategy pattern, functional pipelines.", tags: ["programming", "functional"] },
+      { name: "Higher-Order Functions", def: "Functions that take or return other functions. Java examples: `list.sort(Comparator.comparingInt(String::length))`, `stream.map(String::toUpperCase)`. Enable powerful abstractions without subclassing.", tags: ["programming", "functional"] },
+      { name: "Closures", def: "Function that captures variables from its enclosing scope. Java lambdas capture effectively-final variables. Example: `int threshold = 10; list.stream().filter(n -> n > threshold)` — lambda closes over `threshold`.", tags: ["programming", "functional"] },
+      { name: "Recursion & Base Cases", def: "Function calling itself with smaller subproblem until base case. Example: factorial(n) = n * factorial(n-1), base: factorial(0) = 1. Stack depth risk. Tail recursion (JVM doesn't optimize), iterative often safer. Use for tree traversal, divide-and-conquer.", tags: ["programming", "algorithms"] },
+      { name: "Memoization", def: "Cache results of expensive pure function calls. Same input → return cached result. Example: fibonacci with HashMap cache reduces O(2^n) to O(n). Java: compute-if-absent pattern with ConcurrentHashMap. Foundation of Dynamic Programming.", tags: ["programming", "performance"] },
+      { name: "Currying & Partial Application", def: "Currying: transform f(a,b) into f(a)(b). Partial Application: fix some arguments, return function for rest. Java: `Function<Integer, Function<Integer, Integer>> add = a -> b -> a + b;`. Enables reusable specialized functions.", tags: ["programming", "functional"] },
+      { name: "Type Systems", def: "Static typing (Java, Kotlin): types checked at compile time, catches errors early. Dynamic typing (Python, JS): types resolved at runtime, flexible. Strong typing: implicit coercions disallowed. Java is static + strong.", tags: ["programming", "foundation"] },
+      { name: "Pass by Value vs Pass by Reference", def: "Java: ALWAYS pass by value. Primitives: copy of value. Objects: copy of reference (pointer). So `void modify(List<String> list)` CAN add to the same list, but `void modify(String s)` CANNOT change caller's reference. Common interview trap.", tags: ["programming", "java"] },
+      { name: "Null — The Billion Dollar Mistake", def: "Tony Hoare invented null references and called it his 'billion dollar mistake'. NullPointerException is Java's most common runtime error. Modern solution: Optional<T>, non-null annotations (@NonNull), Kotlin's null-safety, fail-fast validation at boundaries.", tags: ["programming", "java"] },
+      { name: "Tail Call Optimization (TCO)", def: "Compiler optimization transforming tail-recursive calls into a loop, avoiding stack growth. Scala supports TCO with @tailrec annotation. JVM does NOT support general TCO (Project Loom doesn't add it). Use trampoline pattern or explicit iteration for deep recursion in Java.", tags: ["programming", "compilers"] },
+      { name: "Variable Scope & Lifetime", def: "Scope: where variable is visible (block, method, class, package). Lifetime: how long it lives. Local vars live on stack (die when method returns). Instance vars live on heap (die with object). Static vars live in metaspace (entire JVM lifetime).", tags: ["programming", "java"] },
+      { name: "Short-Circuit Evaluation", def: "In `A && B`, if A is false, B is not evaluated. In `A || B`, if A is true, B is not evaluated. Java uses short-circuit for && and ||. Use this: `if (list != null && list.contains(x))` — safe null check + access. Bitwise `&` and `|` don't short-circuit.", tags: ["programming"] },
+      { name: "Operator Precedence", def: "Controls evaluation order without parentheses. Java precedence (high to low): postfix (a++) → unary → multiplicative → additive → shift → relational → equality → bitwise AND → XOR → OR → logical AND → OR → ternary → assignment. When in doubt, use parentheses.", tags: ["programming"] },
+      { name: "Covariance & Contravariance", def: "Covariance: `List<Dog>` is subtype of `List<? extends Animal>` — can read animals. Contravariance: `List<? super Dog>` — can write dogs. Java generics are invariant by default. PECS: Producer Extends, Consumer Super. Critical for correct generic API design.", tags: ["programming", "java"] },
+      { name: "Autoboxing & Unboxing", def: "Automatic conversion between primitives and wrapper objects. int ↔ Integer, long ↔ Long. Silent performance cost: creates heap objects. Can cause NullPointerException: `Integer i = null; int x = i;` — NPE on unboxing. Avoid in tight loops.", tags: ["programming", "java"] },
+      { name: "String Interning & String Pool", def: "JVM maintains a string pool in heap/metaspace. String literals are interned automatically. `\"hello\" == \"hello\"` is true (same pool object). `new String(\"hello\") == \"hello\"` is false. Always use `.equals()` for string comparison.", tags: ["programming", "java"] },
+    ]
+  },
+  {
+    id: "compilers-runtime",
+    title: "Compilers, JVM & Runtime",
+    icon: "🔧",
+    color: "c3",
+    terms: [
+      { name: "Compilation Pipeline", def: "Source code → Lexer (tokens) → Parser (AST) → Semantic Analysis (type checking) → Optimization (IR transforms) → Code Generation (machine code or bytecode). javac produces .class files (bytecode), JVM executes them.", tags: ["compilers", "foundation"] },
+      { name: "Lexing & Tokenization", def: "First compiler phase: scan source text, produce tokens (keywords, identifiers, literals, operators). Example: `int x = 5;` → [INT, IDENTIFIER(x), ASSIGN, INT_LITERAL(5), SEMICOLON]. Regular expressions / finite automata power lexers.", tags: ["compilers"] },
+      { name: "Abstract Syntax Tree (AST)", def: "Tree representation of source code structure. Nodes: MethodDecl, IfStmt, BinaryOp, Literal. Used by compilers, static analysis tools (SpotBugs, SonarQube), code formatters. Java's annotation processors operate on ASTs.", tags: ["compilers"] },
+      { name: "JVM Bytecode", def: "Platform-independent instruction set javac compiles to. Stored in .class files. JVM interprets or JIT-compiles to native code. `javap -c MyClass.class` disassembles bytecode. Bytecode manipulation: ASM, ByteBuddy (used by Mockito, Spring AOP, Hibernate).", tags: ["compilers", "java"] },
+      { name: "JIT Compilation (Just-In-Time)", def: "JVM interprets bytecode initially. HotSpot detects hot methods (called often) and JIT-compiles them to native machine code. C1 compiler: fast, less optimized. C2: slow, heavily optimized. JVM warms up over time — don't benchmark cold JVMs.", tags: ["compilers", "java", "performance"] },
+      { name: "GraalVM & Native Image", def: "GraalVM JIT is more aggressively optimizing than HotSpot C2. Native Image: AOT-compile Java to standalone binary. No JVM needed, instant startup, low memory. Trade-off: no dynamic class loading. Spring Native supports this for microservices.", tags: ["compilers", "java"] },
+      { name: "Classloading", def: "JVM loads .class files on first use. ClassLoader hierarchy: Bootstrap → Extension → Application → Custom. Delegation model: child asks parent first. Hot reload: load new ClassLoader with updated classes. Source of ClassNotFoundException, NoClassDefFoundError.", tags: ["compilers", "java"] },
+      { name: "Inlining Optimization", def: "JIT replaces method call with method body at call site, eliminating call overhead. Enables further optimizations (dead code elimination, constant folding). Why small, focused methods don't hurt performance in Java — JIT inlines them away.", tags: ["compilers", "performance"] },
+      { name: "Escape Analysis", def: "JIT determines if an object is accessible outside its method. If not (doesn't 'escape'), JIT may allocate it on stack instead of heap — avoids GC pressure. Enables scalar replacement (object fields become local variables). Enabled by default in HotSpot.", tags: ["compilers", "performance"] },
+      { name: "Dead Code Elimination", def: "Compiler removes code that can never be reached or whose result is never used. Example: `if (false) { ... }` removed. JIT does this at runtime after profiling. Affects benchmarking: JMH prevents JIT from eliminating benchmark computations.", tags: ["compilers", "performance"] },
+      { name: "Constant Folding & Propagation", def: "Compiler evaluates constant expressions at compile time. `int x = 2 * 3;` → `int x = 6;`. Constant propagation: replace variable with its known constant value. Makes code written for clarity run as fast as hand-optimized code.", tags: ["compilers", "performance"] },
+      { name: "Symbol Table", def: "Compiler data structure mapping identifiers to their types, scopes, memory locations. Built during parsing/semantic analysis. Enables type checking and name resolution. Foundation of IDE features (autocomplete, go-to-definition).", tags: ["compilers"] },
+      { name: "Interpreter vs Compiler", def: "Interpreter: executes source/bytecode directly, line by line. Portable but slow. Compiler: translates entire program to native code before execution. Fast but requires compilation step. JVM uses both: bytecode interpreter + JIT compiler.", tags: ["compilers", "foundation"] },
+      { name: "Garbage Collection Algorithms", def: "Mark-and-sweep: trace from roots (GC roots), mark live, sweep unreachable. Copying: move live objects to new space, old space free. Mark-compact: mark + compact live objects. Generational: combine approaches per generation. ZGC: concurrent, <1ms pauses.", tags: ["compilers", "java", "performance"] },
+      { name: "GC Roots", def: "Starting points for garbage collection tracing: local variables in active stack frames, static fields, JNI references. Objects reachable from any GC root are considered live. Circular references between unreachable objects are still collected (unlike reference counting).", tags: ["compilers", "java"] },
+      { name: "Memory Barriers", def: "Instructions preventing CPU/compiler from reordering memory operations across the barrier. `volatile` in Java inserts barriers. Ensures visibility guarantees. `StoreStore`, `LoadLoad`, `StoreLoad`, `LoadStore` barriers. Without them, optimizations break multi-threaded correctness.", tags: ["compilers", "concurrency"] },
+      { name: "Happens-Before Relationship", def: "Java Memory Model guarantee: if action A happens-before action B, A's effects are visible to B. Established by: `synchronized`, `volatile` write→read, `Thread.start()`, `Thread.join()`, `Future.get()`. Without happens-before, data races are undefined behavior.", tags: ["compilers", "java", "concurrency"] },
+      { name: "Annotation Processing (APT)", def: "javac plugin that runs during compilation, reads annotations, generates code. Examples: Lombok (@Data generates getters/setters), MapStruct (generates mapper implementations), Spring's @ConfigurationProperties binding. Cleaner than runtime reflection.", tags: ["compilers", "java"] },
+    ]
+  },
+  {
+    id: "math-logic",
+    title: "Math, Logic & Discrete Structures",
+    icon: "∑",
+    color: "c1",
+    terms: [
+      { name: "Boolean Algebra", def: "AND (∧), OR (∨), NOT (¬), XOR (⊕). De Morgan's laws: NOT(A AND B) = (NOT A) OR (NOT B). Foundation of circuit design, conditional logic, query optimization. Truth tables enumerate all combinations. Used in SQL WHERE clause optimization.", tags: ["math", "foundation"] },
+      { name: "Set Theory", def: "Collections of distinct elements. Union (∪), Intersection (∩), Difference (\\), Complement. SQL JOINs model set operations. Bloom filters use set membership. Database theory (relational algebra) built on set theory.", tags: ["math", "database"] },
+      { name: "Modular Arithmetic", def: "`a mod n`: remainder when a divided by n. 17 mod 5 = 2. Used in: hash table indexing (`hashCode % capacity`), cyclic buffers, clock arithmetic, cryptography (RSA), consistent hashing (Kafka partition: `key.hashCode() % numPartitions`).", tags: ["math"] },
+      { name: "Logarithms", def: "log_b(x) = y means b^y = x. log_2(1024) = 10. B-tree of height h has b^h nodes. Binary search in log_2(n) steps. Understanding logs is essential for analyzing O(log n) algorithms and interpreting performance charts.", tags: ["math", "algorithms"] },
+      { name: "Probability & Expected Value", def: "P(event): 0 to 1. Expected value E[X] = Σ x·P(x). Used in: load balancer distribution, cache hit rates, circuit breaker failure thresholds, probabilistic data structures (Bloom filter FP rate), chaos engineering blast radius.", tags: ["math"] },
+      { name: "Hashing (Mathematical)", def: "Hash function: maps arbitrary input → fixed-size digest. Properties: deterministic, uniform distribution, avalanche effect. Cryptographic (SHA-256): collision-resistant, irreversible. Non-cryptographic (MurmurHash, xxHash): fast for hash tables, Kafka partitioning.", tags: ["math", "security"] },
+      { name: "XOR Properties", def: "a XOR a = 0. a XOR 0 = a. XOR is commutative, associative. Applications: find single duplicate in array, swap without temp variable (`a^=b; b^=a; a^=b`), parity bits, simple checksums, Kafka partition assignment.", tags: ["math", "algorithms"] },
+      { name: "Graph Theory", def: "G = (V, E): Vertices and Edges. Directed vs undirected. Weighted vs unweighted. Cycle detection, connectivity, shortest path. Applications: service dependency graphs, social networks, route planning, topological sort of build dependencies.", tags: ["math", "algorithms"] },
+      { name: "Topological Sort", def: "Linear ordering of DAG (directed acyclic graph) nodes where each node comes before its dependencies. Algorithm: DFS-based or Kahn's (BFS with in-degree tracking). Use: build systems (Maven), task scheduling, database foreign key constraint ordering.", tags: ["math", "algorithms"] },
+      { name: "Asymptotic Analysis", def: "Big-O (worst case), Omega (best case), Theta (tight bound). O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2^n). Focus on dominant term; drop constants. O(n) + O(n²) = O(n²). Essential for algorithm comparison.", tags: ["math", "algorithms"] },
+      { name: "Amortized Analysis", def: "Average cost per operation over a sequence of operations, even if some are expensive. ArrayList resize: doubling is O(n) when it happens but amortized O(1) per append. Splay trees, dynamic arrays all use amortized analysis.", tags: ["math", "algorithms"] },
+      { name: "Pigeonhole Principle", def: "If n+1 items in n containers, at least one has 2+ items. Application: if hash table has n buckets and n+1 keys, guaranteed collision. Proves limits of any hash function. Also used in distributed systems reasoning about load distribution.", tags: ["math"] },
+      { name: "Bloom Filter", def: "Probabilistic data structure answering 'is X in set?' with no false negatives but possible false positives. Uses k hash functions + bit array. Space-efficient. Used by: Cassandra (avoid disk reads for missing keys), Redis BITFIELD, CDNs. False positive rate tunable by array size.", tags: ["math", "data-structures"] },
+      { name: "Consistent Hashing", def: "Hash nodes and keys to a ring (0 to 2^32-1). Key assigned to next node clockwise. Adding/removing node only remaps keys that were on that node — not the whole dataset. Used by Cassandra, DynamoDB, Kafka with custom partitioners, CDNs.", tags: ["math", "distributed"] },
+      { name: "Merkle Trees", def: "Binary tree where each leaf is hash of data, each internal node is hash of children. Root hash represents entire dataset. If root matches, data unchanged. Used by: Git (object graph), Cassandra (anti-entropy repair), Bitcoin. Efficient comparison of large datasets.", tags: ["math", "distributed"] },
+      { name: "State Machines (FSM)", def: "Finite set of states + transitions triggered by events. Deterministic FSM: one transition per (state, input). Example: TCP connection states (CLOSED→SYN_SENT→ESTABLISHED→FIN_WAIT_1...). Order workflow states. Spring State Machine library models FSMs.", tags: ["math", "design"] },
+      { name: "Regular Expressions (Theory)", def: "Formal language defined by a pattern, recognized by Finite Automata. Regex engine compiles pattern to NFA/DFA. Java `Pattern.compile()` compiles once, reuse for performance. Catastrophic backtracking: nested quantifiers on ambiguous patterns → O(2^n) — source of ReDOS attacks.", tags: ["math", "programming"] },
+      { name: "Floating Point (IEEE 754)", def: "32-bit float: 1 sign + 8 exponent + 23 mantissa bits. 0.1 + 0.2 ≠ 0.3 in floating point. Never use float/double for money — use BigDecimal. NaN (0/0), Infinity (1/0). Epsilon comparison: `Math.abs(a-b) < 1e-9` instead of `a == b`.", tags: ["math", "programming"] },
+      { name: "Recursion Theory & Computability", def: "Turing Machines define computability limits. Halting Problem: no program can decide if arbitrary program halts. P vs NP: P = polynomial-time solvable, NP = polynomial-time verifiable. NP-complete problems (knapsack, SAT) require heuristics/approximations in practice.", tags: ["math", "theory"] },
+    ]
+  },
+  {
+    id: "cookies-sessions-storage",
+    title: "Cookies, Sessions & Browser Storage",
+    icon: "🍪",
+    color: "c2",
+    terms: [
+      { name: "HTTP Cookie", def: "Key-value pair stored by browser, sent with every request to the same domain via Cookie header. Server sets via Set-Cookie response header. Example: `Set-Cookie: sessionId=abc123; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`. Persists across tabs.", tags: ["cookies", "web", "security"] },
+      { name: "Cookie Attributes", def: "HttpOnly: not accessible via JS (prevents XSS theft). Secure: HTTPS only. SameSite=Strict/Lax/None: CSRF protection. Domain/Path: scope. Max-Age/Expires: lifetime. Omitting Max-Age = session cookie (dies with browser tab).", tags: ["cookies", "security"] },
+      { name: "Session Cookie vs Persistent Cookie", def: "Session cookie: no Max-Age/Expires, lives until browser closes. Persistent cookie: has expiry, survives restarts. Example: 'Remember me' checkbox sets a persistent cookie. Auth cookies are typically session cookies for security.", tags: ["cookies"] },
+      { name: "Server-Side Session", def: "Session ID stored in cookie; actual data stored server-side (memory, Redis, DB). Stateful. Spring: HttpSession backed by Redis (spring-session). Scale-out challenge: sticky sessions or shared session store. Example: `session.setAttribute('user', userObj)`.", tags: ["cookies", "spring"] },
+      { name: "JWT vs Session Cookies", def: "JWT: stateless, self-contained, scales horizontally (no server store). Cookie session: stateful, easy revocation, smaller payload. JWT risk: revocation is hard before expiry. Best practice for banking APIs: short-lived JWT (15 min) + refresh token in HttpOnly cookie.", tags: ["cookies", "security", "jwt"] },
+      { name: "localStorage", def: "Browser key-value store, ~5MB, persistent across sessions, same-origin. JS only: `localStorage.setItem('key', value)`. NOT sent to server. Risk: accessible to XSS — never store tokens here. Use for non-sensitive UI preferences.", tags: ["cookies", "web"] },
+      { name: "sessionStorage", def: "Same API as localStorage but scoped to tab and cleared when tab closes. ~5MB. Safe from other tabs. Still XSS vulnerable. Use for multi-step form state within a single session flow.", tags: ["cookies", "web"] },
+      { name: "IndexedDB", def: "Browser-side NoSQL database. Large storage (hundreds of MB+). Async API. Supports indexes, transactions. Use for offline-capable web apps (PWA), large datasets. Never for sensitive data.", tags: ["cookies", "web"] },
+      { name: "Same-Origin Policy (SOP)", def: "Browser security: pages can only read data from same origin (protocol + domain + port). Blocks JS from reading `fetch('https://evil.com')` results. Protects session cookies. CORS is the controlled exception to SOP.", tags: ["cookies", "security", "networking"] },
+      { name: "Cookie Theft & Session Hijacking", def: "Attacker steals session cookie to impersonate user. Methods: XSS (reading document.cookie), network sniff (non-HTTPS), malware. Defenses: HttpOnly, Secure, short TTL, IP binding, re-auth for sensitive actions (bank transfers).", tags: ["cookies", "security"] },
+      { name: "Spring Session Management", def: "`spring-session-data-redis` stores sessions in Redis. `@EnableRedisHttpSession`. Session fixation protection: Spring regenerates session ID on login. Concurrent session control: limit sessions per user. `SessionRegistry` tracks active sessions.", tags: ["cookies", "spring"] },
+      { name: "CSRF Tokens", def: "Server embeds secret token in form/header. Client must echo it on state-changing requests (POST/PUT/DELETE). Attacker cross-site form can't read the token (blocked by SOP). Spring Security generates CSRF tokens automatically. REST APIs with JWT don't need CSRF (no cookies).", tags: ["cookies", "security"] },
+    ]
+  },
+  {
+    id: "caching-deep",
+    title: "Caching — Deep Dive",
+    icon: "⚡",
+    color: "c3",
+    terms: [
+      { name: "Why Cache?", def: "Cache exploits the fact that 80% of requests hit 20% of data (Pareto principle). Reduces DB load, lowers latency, saves cost. Rule: cache what is read often and changes rarely. Never cache frequently mutating data without careful invalidation.", tags: ["caching", "performance"] },
+      { name: "Cache Hit & Miss", def: "Hit: requested data found in cache → fast return. Miss: not found → fetch from origin, populate cache. Hit rate = hits / total requests. Target >90% for effective caching. Cold start (empty cache) causes initial miss storm — use cache warming.", tags: ["caching"] },
+      { name: "Cache-Aside (Lazy Loading)", def: "App checks cache first. Miss → load from DB → store in cache → return. Most common pattern. Example: `cache.get(key)` → null → `db.find(id)` → `cache.put(key, val, TTL)`. Risk: thundering herd on cold start (many simultaneous misses).", tags: ["caching", "patterns"] },
+      { name: "Write-Through Cache", def: "Every write updates cache AND DB synchronously. Cache always consistent. Higher write latency. Good for read-heavy, write-infrequent data. Risk: unnecessary caching of data never read. Example: user profile updates.", tags: ["caching", "patterns"] },
+      { name: "Write-Behind (Write-Back)", def: "Write to cache immediately, DB update async (buffered). Ultra-fast writes. Risk: data loss if cache crashes before flush. Use for high-write scenarios with acceptable eventual persistence (analytics counters, gaming leaderboards).", tags: ["caching", "patterns"] },
+      { name: "Read-Through Cache", def: "Cache sits in front of DB. On miss, cache itself loads from DB (not the application). Simplifies app code. Used by Redis with RedisGears or application-level with Spring's @Cacheable — method result auto-cached on first call.", tags: ["caching", "patterns"] },
+      { name: "TTL (Time-To-Live)", def: "Expiry duration after which cache entry is evicted. Short TTL: fresh data, more DB load. Long TTL: stale risk, less load. Set TTL based on data change frequency. Random jitter ± 10-20% prevents cache stampedes (all entries expiring simultaneously).", tags: ["caching"] },
+      { name: "Cache Eviction Policies", def: "LRU (Least Recently Used): evict oldest-accessed. LFU (Least Frequently Used): evict least-accessed count. FIFO: evict oldest-inserted. Random. TTL-based. Redis default: noeviction (errors when full) or allkeys-lru. Choose based on access patterns.", tags: ["caching"] },
+      { name: "Cache Stampede / Thundering Herd", def: "Many cache misses simultaneously hammering DB. Causes: cache expiry of popular key, cold restart. Fixes: mutex lock on cache miss (one thread fetches, others wait), probabilistic early expiration (refresh before TTL expires), background refresh.", tags: ["caching", "performance"] },
+      { name: "Cache Invalidation Strategies", def: "1. TTL-based expiry (simple, may serve stale). 2. Event-driven invalidation (publish event on write, subscribers evict). 3. Write-through (always consistent). Cache invalidation is famously one of the hardest problems in CS.", tags: ["caching", "patterns"] },
+      { name: "Distributed Cache (Redis Cluster)", def: "Redis Cluster: data sharded across N nodes using consistent hashing (16384 hash slots). Each node holds a slot range. Reads/writes to correct node. Replication: each primary has replicas. Failover: replica promoted if primary fails.", tags: ["caching", "distributed"] },
+      { name: "Local Cache (In-Process)", def: "In-JVM cache: Caffeine, Guava Cache. Sub-microsecond access (no network). Risk: stale data across instances. Use for immutable or low-change reference data (country codes, config values). Caffeine supports async refresh, stats, eviction callbacks.", tags: ["caching", "java"] },
+      { name: "Two-Level Cache (L1 + L2)", def: "L1: local in-JVM Caffeine (nanoseconds). L2: shared Redis (milliseconds). Check L1 first, then L2, then DB. L1 populated from L2. Invalidation: write to DB → evict Redis → broadcast eviction to all JVM L1 caches via pub/sub.", tags: ["caching", "advanced"] },
+      { name: "Spring @Cacheable", def: "`@Cacheable(value='users', key='#id')` on method: returns cached result on subsequent calls with same key. `@CacheEvict`: removes entry. `@CachePut`: updates cache after method executes. Backed by CaffeineCacheManager or RedisCacheManager.", tags: ["caching", "spring"] },
+      { name: "Cache Warming", def: "Pre-populate cache before traffic arrives. Strategies: startup preload (load top-N records from DB on app start), shadow reads (replay production traffic), scheduled refresh. Prevents cold start miss storms after deployments.", tags: ["caching", "ops"] },
+      { name: "Content-Based Cache Keys", def: "Cache key must uniquely represent the query. Pitfall: caching user-specific data without including userId in key. Example: `users::{userId}::profile`. Use composite keys for parameterized queries. Hash long keys for Redis key length limits.", tags: ["caching"] },
+      { name: "HTTP Caching Headers", def: "Cache-Control: max-age=3600, no-cache, no-store, private, public. ETag: fingerprint of response, enables conditional requests (If-None-Match). Last-Modified + If-Modified-Since. CDNs and browsers respect these. Spring: ResponseEntity with CacheControl headers.", tags: ["caching", "networking", "api"] },
+    ]
+  },
+  {
+    id: "multithreading-deep",
+    title: "Multithreading & Concurrency — Deep Dive",
+    icon: "🧵",
+    color: "c1",
+    terms: [
+      { name: "Thread Lifecycle in Java", def: "NEW (created, not started) → RUNNABLE (running or ready) → BLOCKED (waiting for monitor lock) → WAITING (Object.wait(), Thread.join() indefinitely) → TIMED_WAITING (sleep(ms), wait(timeout)) → TERMINATED. Check via thread dump (jstack).", tags: ["concurrency", "java"] },
+      { name: "Creating Threads", def: "1. Extend Thread: `class MyThread extends Thread { public void run() {...} }`. 2. Implement Runnable: `new Thread(myRunnable).start()`. 3. Lambda: `new Thread(() -> doWork()).start()`. 4. ExecutorService (preferred in production — manages pool).", tags: ["concurrency", "java"] },
+      { name: "synchronized Keyword", def: "Intrinsic lock on object/class. Method: `public synchronized void deposit(int amount)` — locks on `this`. Block: `synchronized(lock) { ... }` — locks on `lock`. Reentrant: same thread can re-acquire its own lock. Releases on exit or exception.", tags: ["concurrency", "java"] },
+      { name: "volatile Keyword", def: "Guarantees visibility (reads/writes go to main memory, not CPU cache) and prevents instruction reordering. Does NOT guarantee atomicity. Example: `volatile boolean running = true;` — reliable stop flag. Use for simple flag variables, not compound operations.", tags: ["concurrency", "java"] },
+      { name: "Atomic Classes", def: "java.util.concurrent.atomic: AtomicInteger, AtomicLong, AtomicBoolean, AtomicReference. CAS (Compare-And-Swap) operations — hardware-level atomicity without locks. Example: `atomicInt.incrementAndGet()` is atomic; `i++` on regular int is not (read-modify-write, 3 steps).", tags: ["concurrency", "java"] },
+      { name: "ReentrantLock", def: "Explicit lock with more control than synchronized. `lock.lock()` / `lock.unlock()` (always in finally). tryLock(timeout): avoid indefinite blocking. Fair mode: FIFO queue. ReentrantReadWriteLock: multiple concurrent readers OR one writer.", tags: ["concurrency", "java"] },
+      { name: "Lock Striping", def: "Divide one coarse lock into N finer locks, each protecting a subset of data. ConcurrentHashMap uses 16 segments (Java 7) / per-bucket CAS (Java 8). Reduces contention: only threads hitting the same stripe block each other.", tags: ["concurrency", "performance"] },
+      { name: "ThreadLocal", def: "Per-thread storage — each thread sees its own value. Example: `ThreadLocal<SimpleDateFormat> sdf = ThreadLocal.withInitial(SimpleDateFormat::new)`. Spring uses ThreadLocal for SecurityContext, request scope. Leak risk: always remove() in finally (thread pool reuses threads).", tags: ["concurrency", "java"] },
+      { name: "ExecutorService Deep Dive", def: "FixedThreadPool(n): bounded threads, queue unbounded — memory risk under load. CachedThreadPool: creates threads on demand, reuses idle — OOM risk. WorkStealingPool: ForkJoinPool-based, parallel(). Shutdown: shutdown() + awaitTermination() for graceful stop.", tags: ["concurrency", "java"] },
+      { name: "ForkJoinPool & Work Stealing", def: "Divide-and-conquer parallelism. Task split into subtasks (fork), joined after completion. Work stealing: idle threads steal tasks from busy threads' queues. Used by Stream.parallelStream() and CompletableFuture.supplyAsync() (default pool). CPU-bound tasks benefit most.", tags: ["concurrency", "java"] },
+      { name: "CompletableFuture Chaining", def: "`supplyAsync(() -> fetchUser(id))` runs async. `.thenApply(user -> enrich(user))` transforms result. `.thenCompose(user -> fetchOrders(user))` chains another async. `.thenCombine(cf2, (a,b) -> merge(a,b))` joins two futures. `.exceptionally(e -> fallback)` handles errors.", tags: ["concurrency", "java", "async"] },
+      { name: "CountDownLatch", def: "Countdown from N to 0; awaiting threads unblock when count hits zero. Example: `new CountDownLatch(3)` — main thread waits for 3 workers to finish. One-shot use (non-resettable). Useful for test synchronization and parallel startup coordination.", tags: ["concurrency", "java"] },
+      { name: "CyclicBarrier", def: "All N threads wait at barrier until all arrive, then proceed together. Reusable (unlike CountDownLatch). Example: parallel simulation phases — all threads complete phase 1 before any starts phase 2. Optional barrier action runs when all arrive.", tags: ["concurrency", "java"] },
+      { name: "Semaphore for Rate Limiting", def: "`Semaphore(10)` — max 10 concurrent. `semaphore.acquire()` before critical section, `semaphore.release()` in finally. Controls concurrency to downstream: `Semaphore dbSemaphore = new Semaphore(20)` limits simultaneous DB connections in service layer.", tags: ["concurrency", "java"] },
+      { name: "BlockingQueue", def: "`put()` blocks if full, `take()` blocks if empty. Implementations: ArrayBlockingQueue (bounded), LinkedBlockingQueue (optionally bounded), PriorityBlockingQueue, SynchronousQueue (hand-off). Foundation of producer-consumer pattern without manual wait/notify.", tags: ["concurrency", "java"] },
+      { name: "ConcurrentHashMap Internals", def: "Java 8+: array of Node bins, CAS for lock-free puts on empty bins, synchronized on bin head for collisions. No full-table lock. computeIfAbsent(), merge(), forEach() are atomic compound operations. putIfAbsent() for idempotent cache loading.", tags: ["concurrency", "java"] },
+      { name: "Livelock", def: "Threads keep responding to each other but make no progress. Example: two threads both retry the same conflicting action simultaneously. Unlike deadlock, threads aren't blocked — they're active but stuck in a loop. Fix: randomized backoff (Ethernet CSMA/CD uses this).", tags: ["concurrency"] },
+      { name: "Starvation", def: "Thread permanently denied access to resources because higher-priority or luckier threads always win. Can happen with unfair locks (non-fair ReentrantLock). Fix: fair locking, priority management, bounded waiting queues.", tags: ["concurrency"] },
+      { name: "Thread Dump Analysis", def: "`jstack <pid>` captures all thread states and stack traces. Look for: BLOCKED threads (deadlock), WAITING threads (pool starvation), high-CPU RUNNABLE threads (spin loop). jvisualvm, IntelliJ thread dump analyzer parse output visually.", tags: ["concurrency", "ops"] },
+      { name: "Virtual Threads (Project Loom)", def: "Java 21+: lightweight JVM-managed threads. `Thread.ofVirtual().start(() -> ...)`. Millions can exist (vs thousands of OS threads). Blocking I/O mounts/unmounts virtual thread from carrier thread — no OS thread blocked. RevolutioniZes high-concurrency servers without reactive code.", tags: ["concurrency", "java"] },
+    ]
+  },
+  {
+    id: "java-cheatsheet",
+    title: "Java Developer Cheat Sheet",
+    icon: "📋",
+    color: "c2",
+    terms: [
+      { name: "Primitive Types & Sizes", def: "byte(1B,-128..127), short(2B), int(4B,-2^31..2^31-1), long(8B,append L: 100L), float(4B,append f: 3.14f), double(8B), char(2B,Unicode), boolean(JVM-specific,~1B). Primitives live on stack; wrappers (Integer,Long) live on heap.", tags: ["java", "cheatsheet"] },
+      { name: "String Methods Cheat Sheet", def: "`s.length()`, `s.charAt(i)`, `s.substring(start,end)`, `s.indexOf('x')`, `s.contains(\"abc\")`, `s.replace('a','b')`, `s.split(\",\")`, `s.trim()`, `s.toUpperCase()`, `s.startsWith(\"http\")`, `s.isEmpty()`, `s.isBlank()` (Java 11+).", tags: ["java", "cheatsheet"] },
+      { name: "Collections Quick Reference", def: "List: `new ArrayList<>()`, `add(e)`, `get(i)`, `remove(i)`, `size()`. Map: `new HashMap<>()`, `put(k,v)`, `get(k)`, `getOrDefault(k,def)`, `containsKey(k)`, `entrySet()`. Set: `new HashSet<>()`, `add(e)`, `contains(e)`. Queue: `new LinkedList<>()`, `offer(e)`, `poll()`.", tags: ["java", "cheatsheet"] },
+      { name: "Stream Cheat Sheet", def: "`list.stream().filter(x->x>0).map(x->x*2).sorted().distinct().limit(10).collect(Collectors.toList())`. GroupBy: `.collect(groupingBy(User::getDept))`. Count: `.count()`. AnyMatch: `.anyMatch(x->x.isActive())`. FlatMap: `.flatMap(u->u.getRoles().stream())`.", tags: ["java", "cheatsheet"] },
+      { name: "Optional Cheat Sheet", def: "`Optional.of(val)` — throws NPE if null. `Optional.ofNullable(val)` — safe. `opt.isPresent()`, `opt.get()`, `opt.orElse(default)`, `opt.orElseGet(()->compute())`, `opt.orElseThrow(()->new Ex())`, `opt.map(u->u.getName())`, `opt.filter(u->u.isActive())`.", tags: ["java", "cheatsheet"] },
+      { name: "Exception Handling Patterns", def: "Try-with-resources: `try(Connection c = ds.getConnection()) { ... }` — auto-closes. Multi-catch: `catch(IOException | SQLException e)`. Custom exception: `class InsufficientFundsException extends RuntimeException { public InsufficientFundsException(String msg) { super(msg); } }`.", tags: ["java", "cheatsheet"] },
+      { name: "Comparator Cheat Sheet", def: "`list.sort(Comparator.comparing(User::getName))`. Reversed: `.reversed()`. ThenComparing: `.thenComparing(User::getAge)`. Null-safe: `Comparator.nullsLast(Comparator.naturalOrder())`. Natural order: `Comparator.naturalOrder()`. Custom: `(a,b) -> a.getScore()-b.getScore()`.", tags: ["java", "cheatsheet"] },
+      { name: "Java Date/Time (java.time)", def: "`LocalDate.now()`, `LocalDateTime.now()`, `ZonedDateTime.now(ZoneId.of(\"Asia/Kolkata\"))`. Parse: `LocalDate.parse(\"2024-01-15\")`. Format: `date.format(DateTimeFormatter.ofPattern(\"dd-MM-yyyy\"))`. Plus/minus: `.plusDays(7)`, `.minusMonths(1)`. Duration vs Period.", tags: ["java", "cheatsheet"] },
+      { name: "Enum Best Practices", def: "Enums are singletons. Add fields: `enum Status { ACTIVE(1), INACTIVE(0); final int code; Status(int c){this.code=c;} }`. Switch on enum. `Status.valueOf(\"ACTIVE\")`. `EnumSet`, `EnumMap` are efficient. Use enums for fixed sets (status codes, currencies, event types).", tags: ["java", "cheatsheet"] },
+      { name: "Record Classes (Java 16+)", def: "`record UserDTO(String name, int age) {}` — auto-generates constructor, getters, equals, hashCode, toString. Immutable. Use for DTOs, value objects. Compact constructor: `record Range(int lo, int hi) { Range { if(lo>hi) throw new IllegalArgumentException(); } }`.", tags: ["java", "cheatsheet"] },
+      { name: "Sealed Classes (Java 17+)", def: "Restrict which classes can extend/implement. `sealed interface Shape permits Circle, Rectangle {}`. Enables exhaustive pattern matching in switch. Useful for modeling domain types (Result, Either) where only known subtypes are valid.", tags: ["java", "cheatsheet"] },
+      { name: "Pattern Matching (Java 16-21+)", def: "`instanceof` with binding: `if(obj instanceof String s) { s.length(); }`. Switch pattern (Java 21): `switch(shape) { case Circle c -> Math.PI*c.r()*c.r(); case Rectangle r -> r.w()*r.h(); }`. Eliminates verbose casting.", tags: ["java", "cheatsheet"] },
+      { name: "Useful Java Utilities", def: "`Collections.unmodifiableList(list)`, `Collections.singletonList(x)`, `List.of(a,b,c)` (immutable), `Map.of(k1,v1,k2,v2)`. `Objects.requireNonNull(x,\"msg\")`. `Arrays.asList(arr)`. `Math.min/max/abs/pow/ceil/floor`. `System.currentTimeMillis()` vs `Instant.now()`.", tags: ["java", "cheatsheet"] },
+      { name: "Lombok Annotations", def: "`@Data` = @Getter+@Setter+@EqualsAndHashCode+@ToString+@RequiredArgsConstructor. `@Builder` for builder pattern. `@Slf4j` injects `log` field. `@NoArgsConstructor/@AllArgsConstructor`. `@Value` = immutable @Data. Reduces boilerplate but be cautious with @Data on JPA entities (equals/hashCode issues).", tags: ["java", "cheatsheet"] },
+      { name: "Jackson JSON Annotations", def: "`@JsonProperty(\"user_name\")` — custom field name. `@JsonIgnore` — exclude field. `@JsonInclude(NON_NULL)` — skip nulls. `@JsonAlias({\"id\",\"userId\"})` — accept multiple names. `@JsonFormat(pattern=\"yyyy-MM-dd\")` — date format. `@JsonSerialize/@JsonDeserialize` — custom logic.", tags: ["java", "cheatsheet", "spring"] },
+    ]
+  },
+  {
+    id: "spring-cheatsheet",
+    title: "Spring Boot Cheat Sheet",
+    icon: "🌿",
+    color: "c3",
+    terms: [
+      { name: "Spring Boot Auto-Configuration", def: "META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports lists auto-configs. @ConditionalOnClass, @ConditionalOnMissingBean — activate only if conditions met. `spring.autoconfigure.exclude=DataSourceAutoConfiguration` disables specific ones. Debug: `--debug` flag logs condition report.", tags: ["spring", "cheatsheet"] },
+      { name: "application.yml Structure", def: "Hierarchical config. `server.port: 8080`. `spring.datasource.url: jdbc:postgresql://localhost:5432/db`. `spring.profiles.active: dev`. Override via env vars: `SPRING_DATASOURCE_URL=...`. Command-line: `--server.port=9090`. Profile file: `application-dev.yml`.", tags: ["spring", "cheatsheet"] },
+      { name: "@ConfigurationProperties", def: "`@ConfigurationProperties(prefix='app.kafka')` binds `app.kafka.bootstrapServers`, `app.kafka.topic` to fields. Add `@EnableConfigurationProperties(KafkaProps.class)`. Validated via `@Validated` + JSR-303 annotations. Better than many `@Value` annotations.", tags: ["spring", "cheatsheet"] },
+      { name: "Spring REST Controller Template", def: "`@RestController @RequestMapping('/api/v1/accounts') public class AccountController { @Autowired AccountService svc; @GetMapping('/{id}') public ResponseEntity<AccountDTO> get(@PathVariable Long id) { return ResponseEntity.ok(svc.findById(id)); } @PostMapping public ResponseEntity<AccountDTO> create(@Valid @RequestBody CreateAccountReq req) { return ResponseEntity.status(201).body(svc.create(req)); } }`", tags: ["spring", "cheatsheet"] },
+      { name: "Global Exception Handler", def: "`@ControllerAdvice class GlobalExHandler { @ExceptionHandler(ResourceNotFoundException.class) @ResponseStatus(NOT_FOUND) public ErrorResponse handle(ResourceNotFoundException ex) { return new ErrorResponse('NOT_FOUND', ex.getMessage(), Instant.now()); } @ExceptionHandler(MethodArgumentNotValidException.class) public ResponseEntity<Map> handleValidation(MethodArgumentNotValidException ex) { ... } }`", tags: ["spring", "cheatsheet"] },
+      { name: "Spring Data JPA Quick Reference", def: "`interface UserRepo extends JpaRepository<User,Long> { Optional<User> findByEmail(String email); List<User> findByStatusAndCreatedAtAfter(Status s, LocalDate d); @Query(\"SELECT u FROM User u WHERE u.balance > :min\") List<User> findRich(@Param('min') BigDecimal min); @Modifying @Query(\"UPDATE User u SET u.status=:s WHERE u.id=:id\") int updateStatus(@Param('s') Status s, @Param('id') Long id); }`", tags: ["spring", "cheatsheet", "database"] },
+      { name: "Validation Annotations", def: "`@Valid` on @RequestBody triggers validation. Field annotations: `@NotNull`, `@NotBlank`, `@NotEmpty`, `@Size(min=2,max=50)`, `@Min(0)`, `@Max(100)`, `@Email`, `@Pattern(regexp='[A-Z]{2}')`, `@Positive`, `@Future`, `@Past`. Custom: implement `ConstraintValidator<MyAnnotation, String>`.", tags: ["spring", "cheatsheet"] },
+      { name: "Spring Security JWT Setup", def: "Filter chain: JwtAuthFilter extends OncePerRequestFilter → extract token from `Authorization: Bearer <token>` header → validate signature + expiry → set `SecurityContextHolder.getContext().setAuthentication(auth)`. `.authorizeHttpRequests().requestMatchers('/api/public/**').permitAll().anyRequest().authenticated()`.", tags: ["spring", "cheatsheet", "security"] },
+      { name: "Spring Actuator Endpoints", def: "Enable: `management.endpoints.web.exposure.include=health,metrics,info,prometheus`. `/actuator/health` — UP/DOWN + components. `/actuator/metrics/jvm.memory.used` — specific metric. `/actuator/prometheus` — Prometheus scrape. `/actuator/env` — all properties (sensitive!). Custom: implement `HealthIndicator`.", tags: ["spring", "cheatsheet", "ops"] },
+      { name: "Spring Boot Testing Quick Reference", def: "`@SpringBootTest(webEnvironment=RANDOM_PORT)` — full context. `@WebMvcTest(MyController.class)` — controller only, mock service. `@DataJpaTest` — JPA only, H2 by default. `MockMvc.perform(get('/api/users')).andExpect(status().isOk()).andExpect(jsonPath('$[0].name').value('Bharath'))`. `@MockBean` to mock Spring beans.", tags: ["spring", "cheatsheet", "testing"] },
+      { name: "Async with @Async", def: "Add `@EnableAsync` on config class. Method: `@Async public CompletableFuture<String> sendEmail(String to) { ... return CompletableFuture.completedFuture('sent'); }`. Configure pool: `@Bean TaskExecutor asyncExecutor() { ThreadPoolTaskExecutor e = new ThreadPoolTaskExecutor(); e.setCorePoolSize(5); e.setMaxPoolSize(20); e.setQueueCapacity(100); return e; }`", tags: ["spring", "cheatsheet", "async"] },
+      { name: "Spring Cache Quick Setup", def: "1. Add spring-boot-starter-cache + caffeine. 2. `@EnableCaching` on main class. 3. `spring.cache.type=caffeine`, `spring.cache.caffeine.spec=maximumSize=1000,expireAfterWrite=10m`. 4. `@Cacheable('users')` on service method. 5. `@CacheEvict(value='users', key='#id')` on delete method.", tags: ["spring", "cheatsheet", "caching"] },
+      { name: "Environment & Profile Tips", def: "Run with profile: `java -jar app.jar --spring.profiles.active=prod`. Docker: `-e SPRING_PROFILES_ACTIVE=prod`. Check active profile: `@Autowired Environment env; env.getActiveProfiles()`. `@Profile('!prod')` — active unless prod. `@ConditionalOnProperty(name='feature.x.enabled', havingValue='true')`.", tags: ["spring", "cheatsheet"] },
+      { name: "Spring Boot Startup Optimization", def: "Lazy init: `spring.main.lazy-initialization=true` (slower first request). Exclude unused auto-configs. Use `@Import` instead of component scan where possible. GraalVM native image for instant startup. Virtual threads (Spring Boot 3.2+): `spring.threads.virtual.enabled=true`.", tags: ["spring", "cheatsheet", "performance"] },
+    ]
+  },
+  {
+    id: "docker-k8s-cheatsheet",
+    title: "Docker & Kubernetes Cheat Sheet",
+    icon: "🐳",
+    color: "c1",
+    terms: [
+      { name: "Docker Core Concepts", def: "Image: immutable blueprint (layers). Container: running instance of image. Dockerfile: instructions to build image. Registry: image store (Docker Hub, ECR, GCR). Volume: persistent storage outside container. Network: container-to-container communication.", tags: ["docker", "cheatsheet", "devops"] },
+      { name: "Essential Docker Commands", def: "`docker build -t myapp:1.0 .` Build image. `docker run -d -p 8080:8080 --name app myapp:1.0` Run detached. `docker ps` List running. `docker logs -f app` Stream logs. `docker exec -it app bash` Shell into container. `docker stop app` Graceful stop. `docker rm app` Remove. `docker images` List images. `docker rmi myapp:1.0` Remove image.", tags: ["docker", "cheatsheet"] },
+      { name: "Dockerfile Best Practices", def: "Use multi-stage builds (build in JDK image, run in JRE). Order layers: rarely changing first (dependencies) → often changing last (code). One process per container. Non-root user: `USER appuser`. COPY specific files not `.`. Use `.dockerignore`. Pin base image versions: `FROM eclipse-temurin:21-jre-alpine`.", tags: ["docker", "cheatsheet"] },
+      { name: "Spring Boot Dockerfile (Multi-Stage)", def: "`FROM maven:3.9-eclipse-temurin-21 AS build\nWORKDIR /app\nCOPY pom.xml .\nRUN mvn dependency:go-offline\nCOPY src ./src\nRUN mvn package -DskipTests\nFROM eclipse-temurin:21-jre-alpine\nWORKDIR /app\nCOPY --from=build /app/target/*.jar app.jar\nEXPOSE 8080\nENTRYPOINT [\"java\",\"-jar\",\"app.jar\"]`", tags: ["docker", "cheatsheet", "spring"] },
+      { name: "docker-compose Essentials", def: "`services: app: build: . ports: ['8080:8080'] environment: - SPRING_PROFILES_ACTIVE=dev depends_on: [db, redis] db: image: postgres:15 environment: POSTGRES_PASSWORD: secret volumes: [pgdata:/var/lib/postgresql/data] redis: image: redis:7-alpine`. `docker compose up -d`, `down`, `logs -f app`.", tags: ["docker", "cheatsheet"] },
+      { name: "Docker Networking", def: "bridge: default, containers on same host communicate by name. host: container shares host network (no isolation). none: no networking. overlay: multi-host (Swarm/K8s). `docker network create mynet`. `docker run --network mynet`. Containers on same compose network resolve each other by service name.", tags: ["docker", "cheatsheet"] },
+      { name: "Docker Volumes", def: "Named volume: `docker volume create mydata`. Mount: `-v mydata:/var/lib/postgresql/data`. Bind mount: `-v $(pwd)/config:/app/config` (host dir in container). tmpfs: in-memory, `--tmpfs /tmp`. Volumes survive container deletion; bind mounts reflect host changes live (useful for dev).", tags: ["docker", "cheatsheet"] },
+      { name: "Kubernetes Core Objects", def: "Pod: smallest deployable unit (1+ containers). ReplicaSet: maintains N pod copies. Deployment: manages ReplicaSets + rolling updates. Service: stable network endpoint for pods. ConfigMap: non-secret config. Secret: base64-encoded sensitive config. Namespace: logical cluster isolation.", tags: ["kubernetes", "cheatsheet"] },
+      { name: "Essential kubectl Commands", def: "`kubectl get pods -n myns` List pods. `kubectl describe pod mypod` Details + events. `kubectl logs mypod -f` Stream logs. `kubectl exec -it mypod -- bash` Shell. `kubectl apply -f deployment.yaml` Apply manifest. `kubectl delete -f deployment.yaml`. `kubectl scale deployment myapp --replicas=3`. `kubectl rollout status deployment/myapp`. `kubectl rollout undo deployment/myapp`.", tags: ["kubernetes", "cheatsheet"] },
+      { name: "Spring Boot Deployment YAML", def: "`apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: payment-service\nspec:\n  replicas: 3\n  selector:\n    matchLabels: {app: payment}\n  template:\n    metadata:\n      labels: {app: payment}\n    spec:\n      containers:\n      - name: payment\n        image: myregistry/payment:1.0\n        ports: [{containerPort: 8080}]\n        env:\n        - name: SPRING_PROFILES_ACTIVE\n          value: prod\n        resources:\n          requests: {cpu: 250m, memory: 512Mi}\n          limits: {cpu: 500m, memory: 1Gi}`", tags: ["kubernetes", "cheatsheet", "spring"] },
+      { name: "Kubernetes Service Types", def: "ClusterIP (default): only within cluster. NodePort: exposes on each node's IP:port (30000-32767), for dev. LoadBalancer: provisions cloud LB, external traffic. ExternalName: CNAME alias to external DNS. For prod: LoadBalancer or Ingress (L7 routing) in front of ClusterIP services.", tags: ["kubernetes", "cheatsheet"] },
+      { name: "ConfigMap & Secret Usage", def: "`kubectl create configmap app-config --from-literal=APP_ENV=prod`. Mount as env: `envFrom: [{configMapRef: {name: app-config}}]`. Mount as file: `volumes: [{name: cfg, configMap: {name: app-config}}]`. Secret: `kubectl create secret generic db-secret --from-literal=password=s3cr3t`. Ref: `valueFrom: {secretKeyRef: {name: db-secret, key: password}}`.", tags: ["kubernetes", "cheatsheet"] },
+      { name: "Liveness & Readiness Probes", def: "`livenessProbe: httpGet: {path: /actuator/health/liveness, port: 8080} initialDelaySeconds: 30 periodSeconds: 10 failureThreshold: 3` — restarts pod if fails. `readinessProbe: httpGet: {path: /actuator/health/readiness, port: 8080}` — removes from service if fails. Spring Boot 2.3+ exposes both automatically.", tags: ["kubernetes", "cheatsheet", "spring"] },
+      { name: "Resource Requests & Limits", def: "Request: guaranteed resources (used for scheduling). Limit: max allowed (throttled/OOM-killed if exceeded). CPU: `500m` = 0.5 CPU core. Memory: `512Mi`. Set requests ≈ typical usage, limits ≈ 2x requests. OOMKilled = limit too low. Throttled = CPU limit too low. Always set both in production.", tags: ["kubernetes", "cheatsheet", "performance"] },
+      { name: "HorizontalPodAutoscaler (HPA)", def: "`kubectl autoscale deployment payment --cpu-percent=70 --min=2 --max=10`. Scales based on CPU/memory/custom metrics. Metrics Server must be installed. Custom metrics via Prometheus Adapter. Combine with PodDisruptionBudget (PDB) to ensure rolling updates don't take all pods down.", tags: ["kubernetes", "cheatsheet", "scalability"] },
+      { name: "Ingress (L7 Routing)", def: "`apiVersion: networking.k8s.io/v1 kind: Ingress metadata: {name: api-ingress, annotations: {nginx.ingress.kubernetes.io/rewrite-target: /}} spec: rules: [{host: api.mybank.com, http: {paths: [{path: /payments, pathType: Prefix, backend: {service: {name: payment-svc, port: {number: 8080}}}}]}}]`. Requires Ingress Controller (NGINX, Traefik, AWS ALB).", tags: ["kubernetes", "cheatsheet", "networking"] },
+      { name: "Kubernetes Namespaces Strategy", def: "Separate environments: `dev`, `staging`, `prod` namespaces in same cluster (or separate clusters for prod). RBAC per namespace. ResourceQuotas limit total CPU/memory per namespace. NetworkPolicies restrict cross-namespace traffic. `kubectl config set-context --current --namespace=prod`.", tags: ["kubernetes", "cheatsheet"] },
+      { name: "Rolling Update Strategy", def: "`strategy: type: RollingUpdate rollingUpdate: {maxSurge: 1, maxUnavailable: 0}` — adds one new pod before removing one old (zero downtime). Rollback: `kubectl rollout undo deployment/myapp`. History: `kubectl rollout history deployment/myapp`. Always set readiness probes to prevent traffic to unhealthy new pods.", tags: ["kubernetes", "cheatsheet", "devops"] },
+    ]
+  },
+
+  // ─── SYSTEM DESIGN PRIMER ────────────────────────────────────────────
+  {
+    id: "system-design",
+    title: "System Design Primer (donnemartin + ByteByteGo)",
+    icon: "🏛️",
+    color: "c1",
+    terms: [
+      { name: "System Design Framework (RESHADED)", def: "Requirements → Estimation → Storage schema → High-level design → APIs → Detailed design → Evaluate bottlenecks → Distinctive features. Lead the interview; clarify functional vs non-functional requirements first. Ask about scale, latency SLA, consistency needs before drawing anything.", tags: ["system-design", "interview"] },
+      { name: "Back-of-Envelope Estimation", def: "Powers of 2: 2^10=1K, 2^20=1M, 2^30=1B. Latency numbers: L1 cache hit 0.5ns, RAM 100ns, SSD 100µs, network round-trip 150ms. 1M req/sec = ~12 req/ms. 1 char = 1 byte. 1 HD photo ~1MB. These anchor capacity estimates in interviews.", tags: ["system-design", "interview"] },
+      { name: "Design a URL Shortener", def: "Core: encode longURL→6-char hash (Base62: a-zA-Z0-9 = 62^6 = 56B combos). Store {shortCode, longURL, createdAt, expiresAt} in DB. Redis cache top URLs. 301 Permanent redirect (cacheable) vs 302 Temporary (trackable). Sharding on hash of shortCode. Rate-limit creation API.", tags: ["system-design", "interview"] },
+      { name: "Design a Rate Limiter", def: "Algorithms: Token Bucket (allows burst, tokens replenish at rate R), Leaky Bucket (smooth output rate), Fixed Window Counter (reset every window), Sliding Window Log (precise, memory heavy), Sliding Window Counter (hybrid). Store counters in Redis (INCR + EXPIRE). Return 429 Too Many Requests. Headers: X-RateLimit-Remaining.", tags: ["system-design", "interview"] },
+      { name: "Design a Key-Value Store", def: "Like Redis/DynamoDB. Components: consistent hashing for node selection, virtual nodes for even distribution, gossip protocol for membership, vector clocks for conflict resolution, Merkle trees for anti-entropy. Read/write quorum: R+W > N for strong consistency. Sloppy quorum for availability.", tags: ["system-design", "interview"] },
+      { name: "Design a Notification System", def: "Components: API servers → Message Queue (Kafka per channel: push, email, SMS) → Workers per channel → 3rd party providers (APNs, FCM, Twilio, SendGrid). Retry with exponential backoff. Store notification log. Analytics: delivery rates, click rates. Template service for personalisation.", tags: ["system-design", "interview"] },
+      { name: "Design a News Feed / Timeline", def: "Fan-out on write (push model): on post, write to all followers' feeds — fast read, slow write, celebrity problem. Fan-out on read (pull model): read and merge from all followings — slow read, fast write. Hybrid: fan-out write for regular users, pull for celebrities. Cache feed in Redis sorted set (score = timestamp).", tags: ["system-design", "interview"] },
+      { name: "Design a Chat System (WhatsApp)", def: "WebSocket for persistent bidirectional connection. Message flow: sender → chat server → Kafka → receiver's chat server → WebSocket. Store messages in Cassandra (wide rows per conversation). Message status: sent/delivered/read receipts. Presence service: heartbeat every 5s. Media: upload to S3, send URL.", tags: ["system-design", "interview"] },
+      { name: "Design a Distributed Job Scheduler", def: "Job metadata in DB (cron expression, handler, status). Distributed lock (Redis SETNX) prevents duplicate execution. Workers poll queue or use push (Kafka). Exactly-once via idempotency keys. Dead-letter queue for failed jobs. Retry with exponential backoff. Examples: Quartz (Java), Sidekiq, AWS EventBridge.", tags: ["system-design", "interview"] },
+      { name: "Design YouTube / Video Upload", def: "Upload: chunked multipart upload to S3 → video processing worker (transcoding to multiple resolutions via FFmpeg) → CDN for delivery. Metadata in MySQL. View counts in Redis (flush async to DB). Recommendation: ML pipeline on watch history. Resumable uploads: track last uploaded chunk offset.", tags: ["system-design", "interview"] },
+      { name: "Design a Search Autocomplete", def: "Trie for prefix matching, but in-memory only scales to small datasets. Production: Elasticsearch or Redis ZRANGEBYLEX on sorted set of {score, term}. Precompute top-K suggestions offline from query logs. Cache at CDN edge for popular prefixes. Debounce client-side (300ms) to reduce API calls.", tags: ["system-design", "interview"] },
+      { name: "Design Google Drive / Dropbox", def: "Block storage: split files into 4MB blocks, deduplicate by content hash. Only upload changed blocks on update. Metadata DB: file tree, block manifest, version history. Delta sync: compare block hashes client vs server. Conflict resolution: last-write-wins or create conflict copy. CDN for frequently accessed files.", tags: ["system-design", "interview"] },
+      { name: "Design a Payment System", def: "Idempotency key per transaction (UUID from client) prevents double charges. Two-phase: reserve (debit source) then confirm (credit destination). Saga for distributed transactions. Reconciliation job nightly to detect discrepancies. Audit log (append-only) for every state change. PSP integration: Stripe, Razorpay webhook confirmation.", tags: ["system-design", "interview", "fintech"] },
+      { name: "Design a Distributed ID Generator", def: "Options: UUID (128-bit, no ordering), DB auto-increment (bottleneck), Twitter Snowflake (64-bit: timestamp+datacenterID+machineID+sequence, sortable, ~4096 IDs/ms/machine), Ticket Server (centralized, SPOF). Snowflake is gold standard: time-sorted, no coordination needed, fits in long.", tags: ["system-design", "interview"] },
+      { name: "Scalability Patterns", def: "Scale cube: X-axis (horizontal replication), Y-axis (functional decomposition/microservices), Z-axis (data partitioning/sharding). Start with X (simplest), add Y when domain complexity requires it, add Z when data volume demands it. Don't over-engineer prematurely.", tags: ["system-design", "scalability"] },
+      { name: "Latency vs Throughput", def: "Latency: time for one request to complete. Throughput: requests per second. Optimising one often hurts other. Low latency: co-locate data, reduce hops, cache at edge. High throughput: batching, async processing, pipelining, parallel workers. Aim for acceptable latency at target throughput.", tags: ["system-design", "performance"] },
+      { name: "Availability vs Consistency Trade-off", def: "99.9% availability = 8.7 hrs downtime/year. 99.99% = 52 min. 99.999% = 5 min. Strong consistency: every read gets latest write (requires coordination). Eventual consistency: reads may be stale but converge. For banking: strong. For social feeds: eventual OK. Design around the SLA, not theoretical maxima.", tags: ["system-design", "distributed"] },
+      { name: "Database Scaling Patterns", def: "1. Add indexes. 2. Add read replicas. 3. Add caching. 4. Vertical scale DB. 5. Denormalise for read performance. 6. Shard horizontally. 7. Move to NoSQL for specific access patterns. 8. CQRS: separate read/write models. Try each in order before jumping to sharding — premature sharding is a common mistake.", tags: ["system-design", "database"] },
+    ]
+  },
+
+  // ─── DDIA (Designing Data-Intensive Applications) CONCEPTS ───────────
+  {
+    id: "ddia",
+    title: "DDIA — Kleppmann's Key Concepts",
+    icon: "📖",
+    color: "c2",
+    terms: [
+      { name: "Reliability, Scalability, Maintainability", def: "The three pillars of DDIA. Reliability: correct behavior even when faults occur (hardware, software, human). Scalability: ability to cope with increased load (define load parameters first: RPS, concurrent users, read/write ratio). Maintainability: operability, simplicity, evolvability over time.", tags: ["ddia", "foundation"] },
+      { name: "Storage Engines: Log-Structured vs Page-Oriented", def: "Log-structured (LSM-Trees): fast writes (append-only), slower reads (merge compaction). Used by Cassandra, RocksDB, Kafka. Page-oriented (B-Trees): fast reads (O(log n)), slower writes (in-place update). Used by PostgreSQL, MySQL InnoDB. Choose based on write-heavy vs read-heavy workload.", tags: ["ddia", "database"] },
+      { name: "B-Trees vs LSM-Trees", def: "B-Tree: reads faster, writes involve random I/O (write amplification), predictable latency. LSM-Tree: writes faster (sequential append), reads slower (may check multiple levels), compaction pauses. B-Tree write amplification: every write may update multiple pages. LSM compaction amplification: data rewritten multiple times during merges.", tags: ["ddia", "database"] },
+      { name: "OLTP vs OLAP", def: "OLTP (Online Transaction Processing): low-latency, high-concurrency, small queries on individual records (user-facing). OLAP (Online Analytical Processing): bulk queries on large datasets, aggregates, analytical dashboards. Separate systems: OLTP → PostgreSQL/MySQL, OLAP → Redshift/BigQuery/Snowflake. ETL moves data between them.", tags: ["ddia", "database"] },
+      { name: "Column-Oriented Storage", def: "Store all values of a column together instead of row-by-row. Compressed efficiently (many repeated values). Dramatically faster for analytical queries that scan few columns of many rows. Parquet, ORC formats. BigQuery, Redshift, ClickHouse use columnar storage. Not good for OLTP (writing a row touches many column files).", tags: ["ddia", "database"] },
+      { name: "Write-Ahead Log (WAL)", def: "Every DB change appended to a log BEFORE it's applied to data files. On crash, replay WAL to recover. Foundation of PostgreSQL, MySQL, Kafka (log is the primary data structure). Also enables replication: ship WAL to replicas. LSM-tree memtable is also WAL-backed.", tags: ["ddia", "database"] },
+      { name: "Replication Strategies", def: "Single-leader: all writes to primary, replicated to followers (most common). Multi-leader: writes at multiple datacenters, conflict resolution needed. Leaderless (Dynamo-style): client writes to N nodes, quorum (W+R > N) for consistency. Each trades off: simplicity vs availability vs conflict complexity.", tags: ["ddia", "distributed"] },
+      { name: "Replication Lag & Read-Your-Writes", def: "Async replication: follower may be seconds behind leader. Read-your-writes consistency: after writing, user sees their own write (route their reads to leader for 1 min after write). Monotonic reads: always read from same replica per session. Consistent prefix reads: causally related writes appear in order.", tags: ["ddia", "distributed"] },
+      { name: "Partitioning (Sharding) Strategies", def: "By key range (lexicographic, allows range queries but risks hot spots). By hash of key (even distribution, kills range queries). Consistent hashing: add/remove nodes with minimal redistribution. Compound key partitioning: (userId, timestamp) — partition by userId, sort by timestamp within partition (Cassandra approach).", tags: ["ddia", "database", "distributed"] },
+      { name: "Hot Spots & Skewed Workloads", def: "Hot spot: one partition gets disproportionate traffic (celebrity tweet, trending product). Fix: add random suffix to partition key (spreads writes across N partitions, but reads must query all N and merge). DDIA calls this the 'celebrity problem'. Pre-sharding helps if you can predict access patterns.", tags: ["ddia", "database"] },
+      { name: "Serializable Snapshot Isolation (SSI)", def: "Optimistic concurrency control: transactions proceed without blocking, validated at commit. Detects serialization conflicts (write skew). Better throughput than 2PL under low contention. PostgreSQL 9.1+ uses SSI. Contrast: 2PL (pessimistic, locks, high contention), SSI (optimistic, validates, low contention).", tags: ["ddia", "database", "advanced"] },
+      { name: "Write Skew & Phantoms", def: "Write skew: two transactions read same data, both decide to write based on what they read, final state violates invariant. Example: two on-call doctors both go off-call simultaneously. Phantom: transaction queries, another inserts matching row. Fixed by SERIALIZABLE isolation or materializing conflicts.", tags: ["ddia", "database"] },
+      { name: "Distributed Transactions (2PC)", def: "Coordinator sends Prepare to all participants. If all OK → Coordinator sends Commit. If any fail → Coordinator sends Abort. Problem: coordinator crashes after Prepare but before Commit — participants stuck in doubt (blocking protocol). 3PC or Paxos/Raft overcome this.", tags: ["ddia", "distributed"] },
+      { name: "Linearizability", def: "Strongest consistency guarantee: system behaves as if there is only one copy of data, and every operation appears atomic. Once a write completes, all subsequent reads see that value. Very expensive: requires coordination (Raft/Paxos). Most systems offer weaker guarantees (eventual consistency, causal consistency).", tags: ["ddia", "distributed"] },
+      { name: "Causal Consistency", def: "Causally related operations appear in causal order to all nodes. If you see effect, you also see cause. Stronger than eventual consistency but weaker than linearizability. Implemented via version vectors or Lamport clocks. Git's DAG, Kafka's ordered partitions are causally consistent.", tags: ["ddia", "distributed"] },
+      { name: "Lamport Clocks & Vector Clocks", def: "Lamport clock: logical counter incremented on each event, sent with messages (max(local,received)+1). Establishes happens-before ordering. Vector clock: per-node counter array, captures causality precisely. If A's vector ≤ B's vector, A causally precedes B. Used for conflict detection in Dynamo-style systems.", tags: ["ddia", "distributed"] },
+      { name: "Consensus (Paxos / Raft)", def: "Agreement among distributed nodes despite failures. Raft (understandable): leader election, log replication. Nodes in majority = quorum. Leader replicates entries, commits when majority acknowledge. Used by etcd (K8s brain), CockroachDB, Kafka KRaft. Paxos: theoretically equivalent but famously hard to understand.", tags: ["ddia", "distributed"] },
+      { name: "Stream Processing vs Batch Processing", def: "Batch (MapReduce/Spark): process bounded dataset, minutes to hours delay. Stream (Kafka Streams/Flink): process unbounded dataset event-by-event, milliseconds to seconds delay. Lambda architecture: both in parallel. Kappa architecture: stream-only (reprocess by replaying from Kafka). DDIA recommends stream for most new systems.", tags: ["ddia", "streaming"] },
+      { name: "Encoding & Schema Evolution", def: "Forward compatibility: old code reads new data. Backward compatibility: new code reads old data. Avro: schema in registry, compact binary. Protobuf: field numbers (don't reuse deleted ones). JSON: human-readable, no schema enforcement. DDIA: design for schema evolution from day one — rolling upgrades require both backward & forward compatibility.", tags: ["ddia", "design"] },
+    ]
+  },
+
+  // ─── PRODUCTION ISSUES & SOLUTIONS ───────────────────────────────────
+  {
+    id: "production-issues",
+    title: "Production Issues & Solutions Guide",
+    icon: "🚨",
+    color: "c3",
+    terms: [
+      { name: "OutOfMemoryError: Java heap space", def: "CAUSE: memory leak (retained references), unbounded caches, huge data loaded into memory. DIAGNOSE: `-XX:+HeapDumpOnOutOfMemoryError`, analyse dump with Eclipse MAT or JProfiler. FIX: fix leak (WeakReference for caches, clear collections), tune `-Xmx`, process data in streams not all-at-once.", tags: ["production", "java"] },
+      { name: "StackOverflowError", def: "CAUSE: infinite recursion (missing base case), excessive recursion depth. DIAGNOSE: stack trace shows repeating method. FIX: add base case, convert to iteration, increase `-Xss` (thread stack size) as last resort. Example: bidirectional JPA entity toString() calling each other recursively.", tags: ["production", "java"] },
+      { name: "Connection Pool Exhaustion (HikariCP)", def: "SYMPTOM: requests hang at DB call, `Connection is not available, request timed out after Xms`. CAUSE: long-running queries holding connections, connection leak (not closing), pool too small. FIX: `connectionTimeout`, `maximumPoolSize` tuning, `leakDetectionThreshold=2000`, ensure try-with-resources or Spring @Transactional manages connections.", tags: ["production", "database", "spring"] },
+      { name: "N+1 Query in Production", def: "SYMPTOM: slow endpoint, DB shows thousands of identical SELECT queries per request. DIAGNOSE: Hibernate `show_sql=true` or slow query log. FIX: `@EntityGraph`, JOIN FETCH, batch fetching `@BatchSize(size=20)`, or rewrite as DTO projection with single JOIN query. Never load collections in loops.", tags: ["production", "database"] },
+      { name: "Deadlock in Database", def: "SYMPTOM: `com.mysql.jdbc.exceptions.jdbc4.MySQLTransactionRollbackException: Deadlock found`. CAUSE: two transactions acquire locks in different order. DIAGNOSE: `SHOW ENGINE INNODB STATUS`. FIX: consistent lock ordering across transactions, keep transactions short, use optimistic locking (`@Version`) for low-contention scenarios.", tags: ["production", "database"] },
+      { name: "Kafka Consumer Lag Growing", def: "SYMPTOM: consumers can't keep up with producers, lag increases. CAUSE: slow processing, too few partitions, deserialization errors causing retries. DIAGNOSE: Kafka consumer group lag metrics in Datadog/Grafana. FIX: add consumers (up to partition count), parallelise processing, increase partition count, fix slow logic, handle poison pills via DLQ.", tags: ["production", "kafka"] },
+      { name: "Kafka Consumer Rebalancing Loop", def: "SYMPTOM: consumers constantly rebalancing, no progress. CAUSE: max.poll.interval.ms exceeded (processing takes too long), session.timeout.ms too short, consumer crashes. FIX: increase `max.poll.interval.ms`, reduce `max.poll.records`, process async with bounded queue, fix crashes that cause clean shutdown.", tags: ["production", "kafka"] },
+      { name: "Circuit Breaker Opens in Production", def: "SYMPTOM: requests fail fast with fallback response, downstream service overwhelmed. DIAGNOSE: Resilience4j metrics — failure rate threshold hit. FIX: investigate downstream service health, check timeout settings (too tight?), review error type (4xx shouldn't trip breaker), tune `minimumNumberOfCalls` and `slidingWindowSize` thresholds.", tags: ["production", "microservices"] },
+      { name: "JWT Token Expiry Issues", def: "SYMPTOM: users suddenly logged out, 401 errors after token expiry. FIX: implement refresh token flow (short-lived access token 15min + long-lived refresh token 7 days in HttpOnly cookie). On 401, client silently calls /refresh. Validate refresh token server-side (store in Redis for revocation ability).", tags: ["production", "security"] },
+      { name: "Slow API Response in Production", def: "DIAGNOSE (in order): 1. Check /actuator/metrics for request percentiles. 2. Check GC pause time. 3. Check thread pool saturation. 4. Enable SQL slow query log. 5. Check external service latency (Kafka, Redis, downstream APIs). 6. Distributed trace (Jaeger) to find slowest span. Fix the actual bottleneck, not symptoms.", tags: ["production", "performance"] },
+      { name: "Memory Leak in Spring Boot", def: "COMMON CAUSES: ThreadLocal not cleared in thread pools, unclosed Hibernate sessions, static collection growing unbounded, ClassLoader leak from dynamic loading, unclosed HTTP connections. DIAGNOSE: heap dump analysis (dominator tree). FIX pattern: WeakHashMap for caches, explicit null in finally blocks, connection pool with leak detection.", tags: ["production", "java", "spring"] },
+      { name: "Redis Connection Issues", def: "SYMPTOM: `RedisConnectionFailureException`, timeouts. CAUSES: connection pool exhausted, network partition, Redis maxclients reached. FIX: Lettuce (default in Spring) uses connection multiplexing (far fewer connections than Jedis). Set `spring.redis.lettuce.pool.max-active`, add retry logic, circuit breaker around Redis calls.", tags: ["production", "spring"] },
+      { name: "Spring Transaction Not Rolling Back", def: "COMMON CAUSES: 1. @Transactional on private method (proxy bypass). 2. Self-invocation (`this.method()` skips proxy). 3. Checked exception not in rollbackFor list. 4. @Transactional on wrong layer. FIX: ensure @Transactional on public methods called from outside the bean, use `rollbackFor=Exception.class` explicitly.", tags: ["production", "spring"] },
+      { name: "Container OOMKilled in Kubernetes", def: "SYMPTOM: pod crashes with `OOMKilled` exit code 137. CAUSE: container exceeded memory limit. DIAGNOSE: `kubectl describe pod <name>` → last state reason. FIX: 1. Tune JVM heap: `-Xmx` should be 70-80% of container memory limit. 2. Account for off-heap (Metaspace, threads, NIO). 3. Increase memory limit. 4. Fix Java memory leak.", tags: ["production", "kubernetes", "java"] },
+      { name: "Distributed Tracing Missing Spans", def: "SYMPTOM: trace shows gap, can't see what service X did. CAUSE: context not propagated across thread boundaries (async code, Kafka, manual threads). FIX: use OpenTelemetry instrumentation which handles context propagation. For manual: `Span span = tracer.currentSpan(); new Thread(() -> { try(Scope s = tracer.withSpan(span)) {...} }).start()`.", tags: ["production", "observability"] },
+      { name: "Graceful Shutdown Issues", def: "SYMPTOM: requests fail during deployment, in-flight requests lost. FIX: 1. Spring Boot: `server.shutdown=graceful`, `spring.lifecycle.timeout-per-shutdown-phase=30s`. 2. K8s: `preStop` hook with `sleep 5` to allow load balancer to drain. 3. Kafka: commit offsets before shutdown. 4. ExecutorService: `awaitTermination()` in `@PreDestroy`.", tags: ["production", "devops", "spring"] },
+      { name: "Idempotency in Payment APIs", def: "PROBLEM: network retry causes double charge. FIX: client generates UUID idempotency key per operation. Server: `INSERT INTO idempotency_keys(key, response) VALUES(?,?) ON CONFLICT DO NOTHING`. If exists, return stored response. Store with 24h TTL. Key stored in same DB transaction as business operation (atomicity).", tags: ["production", "fintech", "design"] },
+    ]
+  },
+
+  // ─── DEVELOPER GUIDE: BEST PRACTICES ─────────────────────────────────
+  {
+    id: "dev-guide",
+    title: "Developer Guide — Best Practices & Principles",
+    icon: "📐",
+    color: "c1",
+    terms: [
+      { name: "Clean Code Principles (Uncle Bob)", def: "Functions: do one thing, < 20 lines. Names: reveal intent (getUserById not getU). Comments: only why, never what (code explains what). DRY: don't repeat yourself. YAGNI: you ain't gonna need it. Boy Scout Rule: leave code cleaner than you found it. Fail fast: validate at boundaries.", tags: ["dev-guide", "principles"] },
+      { name: "Code Review Checklist", def: "✓ Does it do what the ticket says? ✓ Edge cases handled? ✓ Tests added? ✓ No new N+1 queries? ✓ No secrets committed? ✓ Exception handling correct? ✓ Logging appropriate (not too much, not too little)? ✓ Thread safety if shared? ✓ Breaking API changes? ✓ Migrations reversible?", tags: ["dev-guide", "practices"] },
+      { name: "API Design Best Practices", def: "Nouns not verbs in URLs: /users/123 not /getUser/123. Consistent naming (snake_case or camelCase — pick one). Pagination on all list endpoints: `?page=0&size=20`. Versioning from day 1: /api/v1/. Always return meaningful error bodies (code, message, timestamp). Never 200 OK with error in body.", tags: ["dev-guide", "api"] },
+      { name: "Error Handling Strategy", def: "Fail fast at entry (validate input, throw early). Throw specific exceptions (InsufficientFundsException, not RuntimeException). Catch at boundaries (controller layer). Never swallow exceptions (empty catch). Log with context (userId, requestId). Return client-friendly messages, log internal details. Use problem+json RFC 7807 format.", tags: ["dev-guide", "practices"] },
+      { name: "Logging Best Practices", def: "Structured JSON logs (key-value pairs). Include: requestId, userId, service, duration, result. Levels: ERROR (needs action), WARN (unexpected but handled), INFO (business events), DEBUG (dev only). Never log passwords/tokens/PII. Correlation ID through all services. Use SLF4J + Logback, not System.out.println.", tags: ["dev-guide", "observability"] },
+      { name: "Configuration Management", def: "Never hardcode: URLs, timeouts, limits, credentials. Use environment variables for secrets (12-Factor). application.yml for non-secret config. Spring Cloud Config for centralised config. Validate config at startup (fail fast if DB_URL missing). Document all env vars in README.", tags: ["dev-guide", "devops"] },
+      { name: "Database Migration Safety", def: "Blue-green DB migration: 1. Add new column (nullable). 2. Deploy code that writes both old+new. 3. Backfill old data. 4. Deploy code that reads new column. 5. Make column non-nullable. 6. Remove old column in next release. Never rename a column in one step — breaks rolling deploy.", tags: ["dev-guide", "database"] },
+      { name: "Defensive Programming", def: "Validate inputs at system boundaries. Never trust user input. Never trust external API responses (validate schema). Use Optional instead of null. Fail fast: throw early if invariant violated. Design for the sad path as much as the happy path. Assume the network will fail, disk will fill, DB will be slow.", tags: ["dev-guide", "principles"] },
+      { name: "Performance First Principles", def: "Measure before optimising (profiler, not intuition). Optimise the biggest bottleneck first. Algorithmic improvement beats micro-optimisation. Caching beats recomputing. Async beats blocking. Index the query, don't rewrite the ORM. Read access patterns first, then design data model around them.", tags: ["dev-guide", "performance"] },
+      { name: "Dependency Management", def: "Use dependency management (Maven BOM / Gradle platform). Pin transitive dependencies causing CVEs. Regular `mvn dependency:analyze` — remove unused. `mvn versions:display-dependency-updates` to track staleness. Spring Boot BOM manages compatible versions — stick to it. Avoid SNAPSHOT dependencies in production.", tags: ["dev-guide", "java"] },
+      { name: "Service Layer Design", def: "Services: business logic only, no HTTP concerns. Repositories: data access only. Controllers: HTTP mapping only. No business logic in controllers. No DB calls in controllers. Services don't know about HTTP status codes. This separation enables unit testing services without Spring context.", tags: ["dev-guide", "spring", "design"] },
+      { name: "Idempotent Operation Design", def: "Design all write operations to be safely retried. POST /payments with idempotency-key header. PUT is idempotent by definition. Use conditional updates: `UPDATE ... WHERE version=X`. Event consumers deduplicate on event ID. Enables retry-safe clients and automatic error recovery.", tags: ["dev-guide", "design", "fintech"] },
+      { name: "Health Check Design", def: "Liveness: can the app process requests? (simple: return 200). Readiness: are all dependencies available? (check DB, Redis, downstream services). Don't make liveness depend on external services — cascade failure kills all pods. Separate liveness (restart) from readiness (traffic removal).", tags: ["dev-guide", "devops", "spring"] },
+      { name: "Timeout Strategy", def: "Every external call must have a timeout: HTTP client, DB query, Kafka consumer poll, Redis operation. Rule of thumb: P99 latency of dependency × 3. Cascade: API timeout > service timeout > DB timeout. Circuit breaker wraps timeout. Without timeouts, one slow dependency hangs all threads forever.", tags: ["dev-guide", "reliability"] },
+      { name: "Secret Zero Problem", def: "How does your app get its first secret (DB password) securely? Options: 1. K8s Secret (encrypted at rest in etcd). 2. HashiCorp Vault with K8s auth (pod's service account token authenticates). 3. AWS IAM role for pod (IRSA) — no secret needed, IAM auth. Vault is the most robust for production BFSI workloads.", tags: ["dev-guide", "security", "devops"] },
+    ]
+  },
+
+  // ─── SQL CHEAT SHEET ─────────────────────────────────────────────────
+  {
+    id: "sql-cheatsheet",
+    title: "SQL & Database Cheat Sheet",
+    icon: "🗃️",
+    color: "c2",
+    terms: [
+      { name: "DDL Quick Reference", def: "CREATE TABLE users (id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, name VARCHAR(100) NOT NULL, email VARCHAR(255) UNIQUE NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW()). ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'ACTIVE'. DROP TABLE IF EXISTS temp_users. CREATE INDEX CONCURRENTLY idx_users_email ON users(email).", tags: ["sql", "cheatsheet"] },
+      { name: "DML Quick Reference", def: "INSERT INTO accounts(user_id, balance) VALUES(1, 1000.00) ON CONFLICT(user_id) DO UPDATE SET balance=EXCLUDED.balance. UPDATE accounts SET balance=balance-100 WHERE id=1 AND balance>=100. DELETE FROM sessions WHERE expires_at < NOW(). TRUNCATE TABLE audit_log RESTART IDENTITY.", tags: ["sql", "cheatsheet"] },
+      { name: "Advanced SELECT Patterns", def: "Pagination: `SELECT * FROM orders ORDER BY id LIMIT 20 OFFSET 0` (slow for large offsets). Keyset: `SELECT * FROM orders WHERE id > :lastId ORDER BY id LIMIT 20` (fast). Count total: `SELECT COUNT(*) OVER() AS total, * FROM orders WHERE user_id=1 LIMIT 20`. Distinct on: `SELECT DISTINCT ON (user_id) * FROM orders ORDER BY user_id, created_at DESC`.", tags: ["sql", "cheatsheet"] },
+      { name: "Window Functions", def: "ROW_NUMBER() OVER(PARTITION BY dept ORDER BY salary DESC) — rank within group. LAG(salary,1) OVER(ORDER BY date) — previous row value. LEAD(salary,1) OVER(ORDER BY date) — next row. SUM(amount) OVER(PARTITION BY user_id ORDER BY date ROWS UNBOUNDED PRECEDING) — running total. NTILE(4) OVER(...) — quartile.", tags: ["sql", "cheatsheet"] },
+      { name: "Common Table Expressions (CTE)", def: "WITH active_users AS (SELECT id FROM users WHERE status='ACTIVE'), orders AS (SELECT * FROM order_table WHERE user_id IN (SELECT id FROM active_users)) SELECT u.name, COUNT(o.id) FROM active_users u JOIN orders o ON o.user_id=u.id GROUP BY u.name. Recursive CTE for hierarchical data (org charts, categories).", tags: ["sql", "cheatsheet"] },
+      { name: "Aggregate Functions", def: "COUNT(*) vs COUNT(col) (skips NULLs). SUM, AVG, MIN, MAX. GROUP BY required for aggregates with non-aggregated columns. HAVING filters aggregated results (HAVING COUNT(*) > 5). FILTER clause: `COUNT(*) FILTER (WHERE status='ACTIVE')`. GROUP_CONCAT / STRING_AGG for concatenating grouped strings.", tags: ["sql", "cheatsheet"] },
+      { name: "Indexes Cheat Sheet", def: "CREATE INDEX ON orders(user_id). Composite: CREATE INDEX ON orders(user_id, status) — works for queries on (user_id) or (user_id, status), not (status) alone. Partial: CREATE INDEX ON orders(user_id) WHERE status='PENDING'. EXPLAIN ANALYZE to verify index is used. DROP unused indexes (they slow writes).", tags: ["sql", "cheatsheet", "performance"] },
+      { name: "Transaction Patterns", def: "BEGIN; SELECT balance FROM accounts WHERE id=1 FOR UPDATE; -- row-level lock UPDATE accounts SET balance=balance-100 WHERE id=1; UPDATE accounts SET balance=balance+100 WHERE id=2; COMMIT; -- For optimistic locking: UPDATE accounts SET balance=b, version=version+1 WHERE id=1 AND version=:expectedVersion; -- check rows affected = 1", tags: ["sql", "cheatsheet"] },
+      { name: "Upsert Patterns", def: "PostgreSQL: `INSERT INTO t(id,val) VALUES(1,'x') ON CONFLICT(id) DO UPDATE SET val=EXCLUDED.val`. MySQL: `INSERT INTO t(id,val) VALUES(1,'x') ON DUPLICATE KEY UPDATE val=VALUES(val)`. MERGE statement (SQL Server, Oracle). Spring Data: `save()` uses merge — check if it generates UPDATE or INSERT via SQL logging.", tags: ["sql", "cheatsheet"] },
+      { name: "EXPLAIN ANALYZE Guide", def: "`EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) SELECT ...`. Look for: Seq Scan on large table (add index), Hash Join vs Nested Loop (NL bad for large tables), rows estimate vs actual (stale statistics, run ANALYZE), Buffers hit vs read (cache effectiveness). Use `pg_stat_statements` for finding slowest queries in production.", tags: ["sql", "cheatsheet", "performance"] },
+      { name: "JSON in PostgreSQL", def: "JSONB (binary, indexed, faster queries) vs JSON (text, insertion order preserved). Query: `data->>'name'` (text), `data->'address'->>'city'` (nested). Contains: `data @> '{\"active\":true}'`. Index: `CREATE INDEX ON users USING GIN(data)`. Update: `UPDATE t SET data = data || '{\"status\":\"active\"}' WHERE id=1`.", tags: ["sql", "cheatsheet"] },
+      { name: "Database Anti-Patterns", def: "1. SELECT * (fetches unnecessary data, breaks if schema changes). 2. NOT IN with subquery (slow, fails with NULLs). 3. OR in WHERE (prevents index use — use UNION). 4. Implicit type coercion in WHERE clause. 5. Using functions on indexed column: `WHERE LOWER(email)='x'` (use functional index). 6. Missing indexes on foreign keys. 7. Unbounded queries (no LIMIT).", tags: ["sql", "cheatsheet", "practices"] },
+    ]
+  },
+
+  // ─── GIT CHEAT SHEET ─────────────────────────────────────────────────
+  {
+    id: "git-cheatsheet",
+    title: "Git & Version Control Cheat Sheet",
+    icon: "🔀",
+    color: "c3",
+    terms: [
+      { name: "Git Core Concepts", def: "Working Tree: files on disk. Index/Staging Area: snapshot of next commit. HEAD: pointer to current branch tip. Objects: blob (file), tree (directory), commit (snapshot + metadata). Refs: branches, tags, remotes. Everything content-addressed by SHA-1 hash. Git is a DAG of commit objects.", tags: ["git", "cheatsheet"] },
+      { name: "Essential Daily Commands", def: "`git status` — what's changed. `git add -p` — interactive staging (review hunks). `git commit -m 'feat: add payment endpoint'` — commit. `git push origin feature/payment` — push branch. `git pull --rebase` — fetch + rebase (cleaner history than merge). `git stash` / `git stash pop` — shelve uncommitted changes.", tags: ["git", "cheatsheet"] },
+      { name: "Branching Strategy", def: "GitFlow: main (prod) + develop + feature/* + release/* + hotfix/*. GitHub Flow: main + short-lived feature branches, deploy on merge. Trunk-Based Development: all devs push to main frequently, use feature flags. For microservices: GitHub Flow / Trunk-Based preferred — simpler, faster CI/CD.", tags: ["git", "cheatsheet", "devops"] },
+      { name: "Merge vs Rebase", def: "Merge: creates merge commit, preserves branch history, non-destructive. Rebase: replays commits on top of target branch, linear history, rewrites commit hashes. Rule: never rebase public/shared branches. Use rebase for local feature cleanup before PR. Squash merge: collapses feature into single commit on main.", tags: ["git", "cheatsheet"] },
+      { name: "Fixing Mistakes", def: "`git commit --amend` — fix last commit (before push). `git reset HEAD~1 --soft` — undo commit, keep changes staged. `git reset HEAD~1 --hard` — undo commit, discard changes. `git revert <sha>` — safe undo via new commit (use on shared branches). `git reflog` — recover 'lost' commits (keep 90 days).", tags: ["git", "cheatsheet"] },
+      { name: "Useful Git Commands", def: "`git log --oneline --graph --all` — visual branch history. `git diff HEAD` — all uncommitted changes. `git bisect start/bad/good` — binary search to find buggy commit. `git cherry-pick <sha>` — apply single commit to current branch. `git blame <file>` — who changed each line. `git shortlog -sn` — commit count by author.", tags: ["git", "cheatsheet"] },
+      { name: "Conventional Commits", def: "Format: `type(scope): description`. Types: feat (new feature), fix (bug fix), docs, style, refactor, perf, test, chore, ci. Example: `feat(payment): add idempotency key validation`. Enables auto changelog, semantic versioning, conventional-changelog tooling. Required in many GCC team workflows.", tags: ["git", "cheatsheet", "practices"] },
+      { name: ".gitignore Patterns", def: "`*.class` — all .class files. `target/` — Maven build dir. `*.log` — log files. `.env` — secrets file (NEVER commit). `.idea/` — IntelliJ config. `node_modules/`. Use gitignore.io to generate. `git rm --cached <file>` to untrack already-committed file. Secrets committed to git: rotate them immediately.", tags: ["git", "cheatsheet"] },
+      { name: "PR / Code Review Workflow", def: "1. Create feature branch from main. 2. Small commits (one logical change each). 3. Push and open PR with description + ticket link. 4. Self-review diff before requesting reviews. 5. Respond to comments. 6. Squash-merge to keep main history clean. 7. Delete feature branch after merge. PRs < 400 lines get better reviews.", tags: ["git", "cheatsheet", "practices"] },
+    ]
+  },
+
+  // ─── INTERVIEW PATTERNS & FRAMEWORKS ─────────────────────────────────
+  {
+    id: "interview-patterns",
+    title: "Interview Patterns & Frameworks",
+    icon: "🎯",
+    color: "c1",
+    terms: [
+      { name: "STAR Method for Behavioural", def: "Situation: set the scene. Task: your responsibility. Action: what YOU specifically did (use I not we). Result: measurable outcome. Example: S: legacy COBOL system causing 3hr batch delays. T: I was asked to migrate critical settlement logic. A: I designed Kafka-based event pipeline, rewrote COBOL to Java. R: processing time dropped to 12 minutes, saved 4 FTEs.", tags: ["interview", "behavioural"] },
+      { name: "System Design Interview Framework", def: "1. Clarify requirements (5 min): functional, non-functional, constraints. 2. Capacity estimation (3 min): RPS, storage, bandwidth. 3. High-level design (10 min): boxes and arrows. 4. Deep dive (15 min): interview picks 1-2 components. 5. Bottlenecks & tradeoffs (5 min). Ask: 'Should I focus on X?' Show structured thinking.", tags: ["interview", "system-design"] },
+      { name: "Java Concurrency Interview Questions", def: "Q: Difference between synchronized and ReentrantLock? A: synchronized is simpler, ReentrantLock adds tryLock, fairness, multiple conditions. Q: What is volatile? A: visibility + ordering, not atomicity. Q: How to prevent deadlock? A: consistent lock ordering, lock timeout, avoid nested locks. Q: What is happens-before? A: JMM guarantee of visibility.", tags: ["interview", "java", "concurrency"] },
+      { name: "Spring Interview Questions", def: "Q: How does @Transactional work? A: AOP proxy wraps method, manages connection. Internal calls bypass. Q: Singleton vs Prototype scope? A: Singleton: one per container (careful with state). Prototype: new per injection. Q: How does Spring Security filter chain work? A: series of filters, each can short-circuit. Q: What is @ConditionalOnMissingBean?", tags: ["interview", "spring"] },
+      { name: "Database Interview Questions", def: "Q: When to use NoSQL vs SQL? A: SQL: ACID, complex queries, relations. NoSQL: scale, flexible schema, specific access patterns. Q: What is an N+1 problem? A: 1 query + N queries for each result. Q: Explain MVCC. A: Multiple Version Concurrency Control — readers never block writers, snapshot isolation. Q: When to denormalise? A: Read-heavy, acceptable staleness.", tags: ["interview", "database"] },
+      { name: "LeetCode Patterns (Backend-relevant)", def: "Two Pointers: sorted array problems. Sliding Window: subarray/substring. HashMap for O(1) lookup (Two Sum, Group Anagrams). BFS/DFS for graph/tree. DP for optimization (memoize results). Heap for top-K. Binary search on answer space. Master these 7 patterns → solve 80% of medium problems.", tags: ["interview", "algorithms"] },
+      { name: "Time Complexity Cheat Sheet", def: "ArrayList: get O(1), add O(1) amortised, remove O(n). HashMap: get/put O(1) avg. TreeMap: O(log n). LinkedList: add/remove O(1) at known pos, search O(n). PriorityQueue: offer/poll O(log n). Arrays.sort: O(n log n). HashSet.contains: O(1). String.substring: O(n) Java 7+. StringBuilder.append: O(1) amortised.", tags: ["interview", "algorithms"] },
+      { name: "Microservices Interview Questions", def: "Q: How to handle distributed transactions? A: Saga pattern (choreography or orchestration) with compensating transactions. Q: What is service mesh? A: Infrastructure layer (Istio/Linkerd) handling mTLS, observability, retries via sidecar proxies. Q: How to ensure idempotency? A: Idempotency key + DB check before processing. Q: Circuit breaker states? A: Closed, Open, Half-Open.", tags: ["interview", "microservices"] },
+      { name: "BFSI / Banking Domain Specifics", def: "Key terms: settlement, reconciliation, clearing, nostro/vostro accounts, ledger, double-entry bookkeeping, T+1/T+2 settlement. Compliance: PCI-DSS (card data), SOX (audit trails), GDPR (data privacy). Architecture: event-sourcing for audit trail, strong consistency for money movement, idempotency everywhere, immutable audit log.", tags: ["interview", "fintech", "domain"] },
+      { name: "Salary Negotiation Framework", def: "Research: Glassdoor, Levels.fyi for role at target company. Anchor high (20-30% above target). Never give first number — 'What's the budgeted range?' Compete offers: 'I have an offer from X, can you match?'. Negotiate total comp (base + bonus + equity + notice buyout). GCC roles: typically higher base, less equity than product startups.", tags: ["interview", "career"] },
+      { name: "What to Ask the Interviewer", def: "Tech: 'What does a typical on-call incident look like?' / 'How do you handle DB migrations with zero downtime?' Culture: 'How are technical decisions made?' / 'What's the biggest technical debt you're dealing with?' Growth: 'What does senior/staff career path look like here?' These reveal more about culture than any answer they give.", tags: ["interview", "career"] },
+    ]
+  },
+];
+
+// --- Render ---
+const main = document.getElementById('main');
+const toc = document.getElementById('toc');
+const filterBtns = document.getElementById('filter-btns');
+const searchInput = document.getElementById('search');
+
+let activeFilter = 'all';
+
+// Build filter buttons
+const allTags = [...new Set(CATEGORIES.flatMap(c => c.terms.flatMap(t => t.tags)))].sort();
+// Just show category-level filters for simplicity
+const catFilters = ['all', 'java', 'spring', 'database', 'api', 'kafka', 'security', 'performance', 'devops', 'testing', 'patterns', 'architecture', 'os', 'networking', 'algorithms', 'compilers', 'math', 'caching', 'concurrency', 'cookies', 'docker', 'kubernetes', 'cheatsheet', 'system-design', 'ddia', 'distributed', 'production', 'dev-guide', 'sql', 'git', 'interview', 'fintech'];
+catFilters.forEach(tag => {
+  if (tag === 'all') return; // already added
+  const btn = document.createElement('button');
+  btn.className = 'filter-btn';
+  btn.dataset.filter = tag;
+  btn.textContent = tag;
+  filterBtns.appendChild(btn);
+});
+
+filterBtns.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    filterBtns.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    render();
+  });
+});
+
+searchInput.addEventListener('input', render);
+
+// TOC
+const tocTitle = document.createElement('div');
+tocTitle.className = 'toc-title';
+tocTitle.textContent = 'Sections';
+toc.appendChild(tocTitle);
+
+CATEGORIES.forEach(cat => {
+  const a = document.createElement('a');
+  a.className = 'toc-item';
+  a.href = `#${cat.id}`;
+  a.innerHTML = `<span class="toc-dot"></span>${cat.title}`;
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById(cat.id)?.scrollIntoView({ behavior: 'smooth' });
+    toc.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+    a.classList.add('active');
+  });
+  toc.appendChild(a);
+});
+
+function render() {
+  const query = searchInput.value.toLowerCase().trim();
+  main.innerHTML = '';
+  let totalVisible = 0;
+
+  CATEGORIES.forEach(cat => {
+    const filtered = cat.terms.filter(term => {
+      const matchesFilter = activeFilter === 'all' || term.tags.includes(activeFilter);
+      const matchesSearch = !query ||
+        term.name.toLowerCase().includes(query) ||
+        term.def.toLowerCase().includes(query) ||
+        term.tags.some(t => t.includes(query));
+      return matchesFilter && matchesSearch;
+    });
+
+    if (filtered.length === 0) return;
+    totalVisible += filtered.length;
+
+    const section = document.createElement('section');
+    section.className = 'category';
+    section.id = cat.id;
+
+    section.innerHTML = `
+      <div class="category-header">
+        <div class="category-icon" style="background:${cat.color === 'c1' ? 'rgba(0,255,136,0.1)' : cat.color === 'c2' ? 'rgba(255,107,53,0.1)' : 'rgba(124,106,255,0.1)'}">${cat.icon}</div>
+        <span class="category-title">${cat.title}</span>
+        <span class="category-count">${filtered.length} terms</span>
+      </div>
+      <div class="terms-grid" id="grid-${cat.id}"></div>
+    `;
+
+    main.appendChild(section);
+    const grid = document.getElementById(`grid-${cat.id}`);
+
+    filtered.forEach((term, i) => {
+      const card = document.createElement('div');
+      card.className = `term-card ${cat.color}`;
+      card.style.animationDelay = `${i * 30}ms`;
+      card.innerHTML = `
+        <div class="term-name">${highlight(term.name, query)}</div>
+        <div class="term-def">${highlight(term.def, query)}</div>
+        <div class="term-tags">${term.tags.map(t => `<span class="term-tag">${t}</span>`).join('')}</div>
+      `;
+      grid.appendChild(card);
+    });
+  });
+
+  if (totalVisible === 0) {
+    main.innerHTML = `<div class="no-results">// no results for "${query}"<br><br>Try: java, spring, kafka, api, security...</div>`;
+  }
+
+  document.getElementById('visible-count').textContent = totalVisible;
+}
+
+function highlight(text, query) {
+  if (!query) return text;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return text.replace(new RegExp(`(${escaped})`, 'gi'), '<mark style="background:rgba(0,255,136,0.25);color:inherit;border-radius:2px;">$1</mark>');
+}
+
+// Stats
+const totalTerms = CATEGORIES.reduce((a, c) => a + c.terms.length, 0);
+document.getElementById('total-count').textContent = totalTerms;
+document.getElementById('cat-count').textContent = CATEGORIES.length;
+
+render();
+</script>
+</body>
+</html>
