@@ -3,27 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bharath G — Backend Engineering Log</title>
+<title>Bharath G - Backend Engineering Log</title>
 <meta name="description" content="Notes on Java, Spring Boot, Kafka and backend systems by Bharath G.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #0E1417;
-    --bg-raised: #141B1F;
-    --line: #223038;
-    --text: #DDE4E6;
-    --text-dim: #8FA1A8;
-    --text-faint: #5C6F76;
-    --amber: #E3A339;
-    --teal: #4FA69C;
-    --font-display: 'Space Grotesk', sans-serif;
+    --bg: #0B0F12;
+    --bg-raised: #12181C;
+    --bg-raised-2: #161E23;
+    --line: #212B31;
+    --line-soft: #1A2227;
+    --text: #E7ECEE;
+    --text-dim: #91A3AA;
+    --text-faint: #526169;
+    --amber: #E8A94A;
+    --amber-dim: #B98237;
+    --teal: #5FBBAE;
+    --red: #D9695F;
+    --font-display: 'Fraunces', serif;
     --font-body: 'Inter', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
   }
   *{ box-sizing: border-box; }
   html{ scroll-behavior: smooth; }
+  ::selection{ background: var(--amber); color: #0B0F12; }
   body{
     margin:0;
     background: var(--bg);
@@ -31,144 +36,162 @@
     font-family: var(--font-body);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(circle at 15% 0%, rgba(95,187,174,0.06), transparent 40%),
+      radial-gradient(circle at 85% 15%, rgba(232,169,74,0.05), transparent 45%);
   }
   a{ color: inherit; text-decoration: none; }
+  ::-webkit-scrollbar{ width: 10px; }
+  ::-webkit-scrollbar-track{ background: var(--bg); }
+  ::-webkit-scrollbar-thumb{ background: var(--line); border-radius: 6px; }
 
-  .wrap{ max-width: 880px; margin: 0 auto; padding: 0 24px; }
+  .wrap{ max-width: 920px; margin: 0 auto; padding: 0 28px; }
 
-  /* ---------- top bar / log header ---------- */
+  [data-reveal]{ opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s ease; }
+  [data-reveal].in{ opacity: 1; transform: translateY(0); }
+
+  /* ---------- top bar ---------- */
   .topbar{
-    border-bottom: 1px solid var(--line);
-    padding: 18px 0;
+    position: sticky; top:0; z-index: 50;
+    background: rgba(11,15,18,0.82);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line-soft);
+    padding: 16px 0;
     font-family: var(--font-mono);
-    font-size: 13px;
+    font-size: 12.5px;
     color: var(--text-faint);
-    letter-spacing: 0.02em;
   }
   .topbar .wrap{ display:flex; justify-content: space-between; align-items:center; }
-  .topbar .dot{ color: var(--teal); }
-  .topbar nav a{ color: var(--text-dim); margin-left: 20px; transition: color .15s; }
+  .topbar .brand{ display:flex; align-items:center; gap:8px; color: var(--text-dim); }
+  .topbar .brand .led{
+    width:7px; height:7px; border-radius:50%; background: var(--teal);
+    box-shadow: 0 0 8px var(--teal);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
+  .topbar nav a{ color: var(--text-dim); margin-left: 22px; transition: color .15s; position:relative; }
   .topbar nav a:hover{ color: var(--amber); }
 
   /* ---------- hero ---------- */
-  .hero{ padding: 72px 0 56px; border-bottom: 1px solid var(--line); position: relative; }
-  .hero .tag{
-    font-family: var(--font-mono);
-    font-size: 12.5px;
-    color: var(--amber);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    display: inline-block;
-    padding: 4px 10px;
-    border: 1px solid rgba(227,163,57,0.35);
-    border-radius: 3px;
-    margin-bottom: 22px;
+  .hero{ padding: 96px 0 0; position: relative; overflow: hidden; }
+  .hero-inner{ padding-bottom: 64px; border-bottom: 1px solid var(--line-soft); }
+  .hero .eyebrow{
+    font-family: var(--font-mono); font-size: 12.5px; color: var(--amber);
+    text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 26px;
+    display:flex; align-items:center; gap: 10px;
   }
+  .hero .eyebrow::before{ content:''; width:22px; height:1px; background: var(--amber); display:inline-block; }
   .hero h1{
-    font-family: var(--font-display);
-    font-size: clamp(36px, 6vw, 54px);
-    line-height: 1.08;
-    font-weight: 600;
-    margin: 0 0 18px;
-    letter-spacing: -0.01em;
+    font-family: var(--font-display); font-optical-sizing: auto;
+    font-size: clamp(40px, 6.4vw, 64px);
+    line-height: 1.04; font-weight: 600; margin: 0 0 24px; letter-spacing: -0.015em;
+    max-width: 780px;
   }
-  .hero h1 .accent{ color: var(--teal); }
+  .hero h1 em{ font-style: italic; color: var(--teal); font-weight: 500; }
   .hero p.lead{
-    font-size: 17px;
-    color: var(--text-dim);
-    max-width: 560px;
-    margin: 0 0 28px;
+    font-size: 18px; color: var(--text-dim); max-width: 540px; margin: 0 0 36px;
   }
-  .hero .cursor{
-    display:inline-block; width:9px; height: 1.05em; background: var(--amber);
-    margin-left: 4px; vertical-align: -2px;
-    animation: blink 1.1s steps(1) infinite;
-  }
-  @keyframes blink{ 50%{ opacity:0; } }
-
-  .hero .links{ display:flex; gap: 14px; flex-wrap: wrap; }
+  .hero .links{ display:flex; gap: 12px; flex-wrap: wrap; }
   .btn{
-    font-family: var(--font-mono);
-    font-size: 13px;
-    padding: 10px 16px;
-    border-radius: 4px;
-    border: 1px solid var(--line);
-    color: var(--text);
-    transition: border-color .15s, color .15s, background .15s;
+    font-family: var(--font-mono); font-size: 13px; padding: 11px 18px; border-radius: 6px;
+    border: 1px solid var(--line); color: var(--text); transition: all .18s ease;
+    display:inline-flex; align-items:center; gap:8px;
   }
-  .btn:hover{ border-color: var(--amber); color: var(--amber); }
-  .btn.primary{ background: var(--amber); border-color: var(--amber); color: #14100A; font-weight: 600; }
-  .btn.primary:hover{ background: #f0b352; color:#14100A; }
+  .btn:hover{ border-color: var(--amber); color: var(--amber); transform: translateY(-1px); }
+  .btn.primary{ background: var(--amber); border-color: var(--amber); color: #150F08; font-weight: 600; }
+  .btn.primary:hover{ background: #f2ba63; color:#150F08; }
+
+  /* signature: live partition visual */
+  .partitions{ margin-top: 56px; }
+  .partitions .cap{
+    font-family: var(--font-mono); font-size: 11.5px; color: var(--text-faint);
+    display:flex; justify-content: space-between; margin-bottom: 10px;
+  }
+  .partition-row{ display:flex; align-items:center; gap: 14px; margin-bottom: 10px; }
+  .partition-row .plabel{ font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); width: 58px; flex-shrink:0; }
+  .partition-row .track{
+    flex:1; height: 22px; background: var(--bg-raised); border: 1px solid var(--line-soft);
+    border-radius: 4px; position: relative; overflow: hidden;
+  }
+  .partition-row .track .segs{ position:absolute; inset:0; display:flex; }
+  .partition-row .track .seg{ height:100%; border-right: 1px solid rgba(0,0,0,0.35); }
+  .partition-row .track .cursor{
+    position:absolute; top:0; bottom:0; width: 2px; background: var(--amber);
+    box-shadow: 0 0 10px var(--amber);
+    animation: sweep 5.5s linear infinite;
+  }
+  @keyframes sweep{ 0%{ left:0%; } 100%{ left:100%; } }
+  .partition-row:nth-child(2) .cursor{ animation-duration: 7.2s; animation-delay: -1.2s; }
+  .partition-row:nth-child(3) .cursor{ animation-duration: 6.1s; animation-delay: -3s; }
 
   /* ---------- section shared ---------- */
-  section{ padding: 56px 0; border-bottom: 1px solid var(--line); }
-  .section-head{ display:flex; align-items: baseline; gap: 12px; margin-bottom: 30px; }
-  .section-head .idx{ font-family: var(--font-mono); color: var(--text-faint); font-size: 13px; }
-  .section-head h2{
-    font-family: var(--font-display);
-    font-size: 22px; font-weight: 600; margin: 0;
-    color: var(--text);
-  }
-  .section-head .rule{ flex:1; height:1px; background: var(--line); }
+  section{ padding: 68px 0; border-bottom: 1px solid var(--line-soft); }
+  .section-head{ display:flex; align-items: baseline; gap: 14px; margin-bottom: 36px; }
+  .section-head .idx{ font-family: var(--font-mono); color: var(--amber-dim); font-size: 13px; }
+  .section-head h2{ font-family: var(--font-display); font-size: 26px; font-weight: 600; margin: 0; }
+  .section-head .rule{ flex:1; height:1px; background: var(--line-soft); }
 
   /* ---------- about ---------- */
-  .about-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-  .about-grid p{ color: var(--text-dim); margin: 0 0 16px; font-size: 15.5px; }
+  .about-grid{ display:grid; grid-template-columns: 1.15fr 0.85fr; gap: 56px; }
+  .about-grid p{ color: var(--text-dim); margin: 0 0 18px; font-size: 16px; }
   .about-grid p strong{ color: var(--text); font-weight: 600; }
-  .facts{ font-family: var(--font-mono); font-size: 13.5px; }
-  .facts dl{ display:grid; grid-template-columns: 110px 1fr; row-gap: 12px; margin:0; }
+  .about-grid p.pull{
+    font-family: var(--font-display); font-size: 21px; font-weight: 500; color: var(--text);
+    line-height: 1.45; margin-bottom: 26px;
+  }
+  .facts{ background: var(--bg-raised); border: 1px solid var(--line-soft); border-radius: 10px; padding: 26px; }
+  .facts dl{ display:grid; grid-template-columns: 84px 1fr; row-gap: 16px; margin:0; font-family: var(--font-mono); font-size: 13px; }
   .facts dt{ color: var(--text-faint); }
   .facts dd{ margin:0; color: var(--text); }
-  .facts dd .stack span{
-    display:inline-block; background: var(--bg-raised); border:1px solid var(--line);
-    padding: 3px 8px; border-radius: 3px; margin: 0 6px 6px 0; font-size: 12.5px; color: var(--teal);
+  .facts .stack{ display:flex; flex-wrap:wrap; gap: 7px; }
+  .facts .stack span{
+    background: var(--bg-raised-2); border:1px solid var(--line); padding: 4px 9px;
+    border-radius: 4px; font-size: 12px; color: var(--teal);
   }
+  @media (max-width: 760px){ .about-grid{ grid-template-columns: 1fr; } }
 
-  @media (max-width: 700px){ .about-grid{ grid-template-columns: 1fr; } }
-
-  /* ---------- posts / log feed ---------- */
+  /* ---------- posts ---------- */
   .feed{ display:flex; flex-direction: column; }
   .entry{
-    display:grid;
-    grid-template-columns: 96px 1fr;
-    gap: 20px;
-    padding: 22px 0;
-    border-top: 1px solid var(--line);
+    display:grid; grid-template-columns: 108px 1fr 20px; gap: 24px; align-items: start;
+    padding: 28px 0; border-top: 1px solid var(--line-soft); transition: padding-left .18s ease;
   }
   .entry:first-child{ border-top: none; padding-top: 0; }
-  .entry .stamp{
-    font-family: var(--font-mono); font-size: 12px; color: var(--text-faint); padding-top: 4px;
+  .entry:hover{ padding-left: 6px; }
+  .entry .stamp{ font-family: var(--font-mono); font-size: 11.5px; color: var(--text-faint); padding-top: 5px; }
+  .entry .stamp .status{
+    display:inline-flex; align-items:center; gap:6px; margin-top: 8px; color: var(--teal);
   }
-  .entry .stamp .status{ color: var(--teal); display:block; margin-top: 4px; }
-  .entry-body a.title-link{ display:block; }
+  .entry .stamp .status::before{ content:''; width:6px; height:6px; border-radius:50%; background: currentColor; }
+  .entry .stamp .status.pending{ color: var(--text-faint); }
   .entry h3{
-    font-family: var(--font-display); font-size: 19px; font-weight: 600; margin: 0 0 8px;
+    font-family: var(--font-display); font-size: 21px; font-weight: 600; margin: 0 0 10px;
     color: var(--text); transition: color .15s;
   }
   .entry:hover h3{ color: var(--amber); }
-  .entry p{ color: var(--text-dim); font-size: 14.5px; margin: 0 0 12px; max-width: 560px; }
+  .entry p{ color: var(--text-dim); font-size: 14.5px; margin: 0 0 14px; max-width: 580px; }
   .entry .tags{ display:flex; gap:8px; flex-wrap: wrap; }
   .entry .tags span{
-    font-family: var(--font-mono); font-size: 11.5px; color: var(--text-faint);
-    border: 1px solid var(--line); padding: 2px 7px; border-radius: 3px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--text-faint);
+    border: 1px solid var(--line); padding: 3px 8px; border-radius: 4px;
   }
-  .entry .arrow{ font-family: var(--font-mono); color: var(--text-faint); font-size: 13px; }
-  .entry:hover .arrow{ color: var(--amber); }
-
-  .entry.placeholder{ opacity: 0.55; }
+  .entry .arrow{ font-family: var(--font-mono); color: var(--text-faint); font-size: 15px; padding-top: 6px; transition: transform .18s ease, color .18s ease; }
+  .entry:hover .arrow{ color: var(--amber); transform: translateX(3px); }
+  .entry.placeholder{ opacity: 0.5; }
+  .entry.placeholder:hover{ padding-left:0; }
   .entry.placeholder h3{ color: var(--text-dim); }
-  .entry.placeholder:hover h3{ color: var(--text-dim); }
 
   /* ---------- footer ---------- */
-  footer{ padding: 40px 0 60px; }
+  footer{ padding: 48px 0 64px; }
   footer .wrap{ display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 16px; }
-  footer .sig{ font-family: var(--font-mono); font-size: 12.5px; color: var(--text-faint); }
-  footer .social a{ font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); margin-left: 18px; transition: color .15s; }
+  footer .sig{ font-family: var(--font-mono); font-size: 12px; color: var(--text-faint); }
+  footer .social a{ font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); margin-left: 20px; transition: color .15s; }
   footer .social a:hover{ color: var(--amber); }
 
-  @media (max-width: 620px){
+  @media (max-width: 640px){
     .entry{ grid-template-columns: 1fr; }
-    .entry .stamp{ padding-top:0; }
+    .entry .arrow{ display:none; }
+    .partition-row .plabel{ width: 44px; }
   }
 </style>
 </head>
@@ -176,7 +199,7 @@
 
   <div class="topbar">
     <div class="wrap">
-      <div><span class="dot">●</span> bharath-g.github.io <span style="color:var(--text-faint)">/ log</span></div>
+      <div class="brand"><span class="led"></span> bharath-g.github.io <span style="color:var(--text-faint)">/ log</span></div>
       <nav>
         <a href="#about">about</a>
         <a href="#posts">posts</a>
@@ -186,24 +209,40 @@
   </div>
 
   <header class="hero">
-    <div class="wrap">
-      <span class="tag">backend engineering log</span>
-      <h1>Building things that<br>read from a <span class="accent">log</span>, not a guess<span class="cursor"></span></h1>
+    <div class="wrap hero-inner">
+      <div class="eyebrow">backend engineering log</div>
+      <h1>Building Systems that <em>replay</em> cleanly<br>when everything else fails.</h1>
       <p class="lead">
-        Java, Spring Boot, Kafka and the occasional production incident —
-        written down the way I wish someone had written it for me.
+        Java, Spring Boot and Kafka, written down the way I wish someone had
+        written it for me - before the incident, not after.
       </p>
       <div class="links">
         <a class="btn primary" href="#posts">Read the posts →</a>
         <a class="btn" href="#about">About me</a>
-        <a class="btn" href="https://github.com/Bharath-G">GitHub</a>
         <a class="btn" href="https://www.linkedin.com/in/bharath-gopal/">LinkedIn</a>
+        <a class="btn" href="https://github.com/Bharath-G">GitHub</a>
+      </div>
+
+      <div class="partitions" aria-hidden="true">
+        <div class="cap"><span>topic: engineering-log</span><span>3 partitions · at-least-once</span></div>
+        <div class="partition-row">
+          <span class="plabel">p0</span>
+          <div class="track"><div class="segs"></div><div class="cursor"></div></div>
+        </div>
+        <div class="partition-row">
+          <span class="plabel">p1</span>
+          <div class="track"><div class="segs"></div><div class="cursor"></div></div>
+        </div>
+        <div class="partition-row">
+          <span class="plabel">p2</span>
+          <div class="track"><div class="segs"></div><div class="cursor"></div></div>
+        </div>
       </div>
     </div>
   </header>
 
   <section id="about">
-    <div class="wrap">
+    <div class="wrap" data-reveal>
       <div class="section-head">
         <span class="idx">01</span>
         <h2>About me</h2>
@@ -211,26 +250,30 @@
       </div>
       <div class="about-grid">
         <div>
+          <p class="pull">
+            I write about backend systems the way I'd want them to be explained precisely, and without the fluff.
+          </p>
           <p>
-            I'm <strong>Bharath</strong>, a backend developer working on Java and Spring Boot
-            systems in the banking domain. Most of my day is spent inside services that
-            talk to each other over Kafka rather than waiting on each other over REST —
-            and most of what I write here comes directly out of that work.
+            I'm <strong>Bharath</strong>, a backend developer working on Java and
+            Spring Boot systems in the banking domain. Most of my day is spent inside
+            services that talk to each other over Kafka rather than waiting on each
+            other over REST, and most of what ends up here comes straight out of that work.
           </p>
           <p>
             This log exists because I learn best by writing things down properly once,
-            instead of re-Googling the same Kafka consumer property for the fifth time.
-            If a reference guide saves me twenty minutes at 2 AM, it's worth publishing.
+            instead of re-searching the same thing again and again.
+            If a reference guide saves someone twenty minutes during an incident,
+            it's worth publishing.
           </p>
           <p>
-            Outside of backend work, I'm building <strong>NeoBank</strong> — a personal
-            event-driven microservices project — as a way to go deep on the same ideas
-            I write about here: Kafka, Cassandra, and now a bit of Spring AI.
+            Outside day-to-day work, I build <strong>NeoBank</strong> - a personal
+            event-driven microservices project - to go deep on the same ideas I write
+            about here: Kafka, Cassandra, and lately, Spring AI.
           </p>
         </div>
         <div class="facts">
           <dl>
-            <dt>role</dt><dd>Backend Developer (Java / Spring Boot)</dd>
+            <dt>role</dt><dd>Backend Developer</dd>
             <dt>domain</dt><dd>Banking &amp; Financial Services</dd>
             <dt>focus</dt><dd>Event-driven microservices</dd>
             <dt>based in</dt><dd>Chennai, India</dd>
@@ -247,7 +290,7 @@
   </section>
 
   <section id="posts">
-    <div class="wrap">
+    <div class="wrap" data-reveal>
       <div class="section-head">
         <span class="idx">02</span>
         <h2>Posts</h2>
@@ -257,50 +300,48 @@
       <div class="feed">
 
         <div class="entry">
-          <div class="stamp">v1.0<span class="status">published</span></div>
+          <div class="stamp">offset 001<span class="status">published</span></div>
           <div class="entry-body">
-            <a class="title-link" href="https://bharath-g.github.io/blog/kafka-guide/">
-              <h3>Kafka + Spring Boot — Reference Bible</h3>
+            <a href="https://bharath-g.github.io/blog/kafka-guide/">
+              <h3>Kafka + Spring Boot - Reference Bible</h3>
             </a>
             <p>
               Every producer and consumer property, error-handling pattern, transactional
-              outbox, saga, and CQRS setup I actually use — plus 30 interview questions
-              and 20 real production incidents with fixes.
+              outbox, saga, and CQRS setup I actually use - plus interview questions and
+              real production incidents with fixes.
             </p>
-            <div class="tags">
-              <span>kafka</span><span>spring-boot</span><span>reference</span>
-            </div>
+            <div class="tags"><span>kafka</span><span>spring-boot</span><span>reference</span></div>
           </div>
+          <a class="arrow" href="https://bharath-g.github.io/blog/kafka-guide/" aria-label="Read Kafka reference bible">→</a>
         </div>
 
         <div class="entry">
-          <div class="stamp">draft<span class="status">published</span></div>
+          <div class="stamp">offset 002<span class="status">published</span></div>
           <div class="entry-body">
-            <a class="title-link" href="https://bharath-g.github.io/blog/cs-fundamentals/">
-              <h3>Backend Dev Mastery — CS Fundamentals</h3>
+            <a href="https://bharath-g.github.io/blog/cs-fundamentals/">
+              <h3>Backend Dev Mastery - CS Fundamentals</h3>
             </a>
             <p>
-              A working reference on the computer-science fundamentals behind backend
-              engineering — the concepts underneath the framework, for when the framework
-              stops explaining itself.
+              A working reference on the computer-science fundamentals underneath backend
+              engineering - the concepts still standing after the framework stops explaining itself.
             </p>
-            <div class="tags">
-              <span>fundamentals</span><span>computer-science</span><span>backend</span>
-            </div>
+            <div class="tags"><span>fundamentals</span><span>computer-science</span><span>backend</span></div>
           </div>
+          <a class="arrow" href="https://bharath-g.github.io/blog/cs-fundamentals/" aria-label="Read CS fundamentals guide">→</a>
         </div>
 
         <div class="entry placeholder">
-          <div class="stamp">—</div>
+          <div class="stamp">offset 003<span class="status pending">writing</span></div>
           <div class="entry-body">
-            <h3>Next up — in progress</h3>
+            <h3>Next up - in progress</h3>
             <p>
               New posts land here as they're written. Currently drafting notes on
-              Spring internals and system design fundamentals from my ongoing 49-day
-              learning plan.
+              Spring internals and system design fundamentals from an ongoing
+              structured learning plan.
             </p>
             <div class="tags"><span>coming soon</span></div>
           </div>
+          <span></span>
         </div>
 
       </div>
@@ -316,6 +357,27 @@
       </span>
     </div>
   </footer>
+
+  <script>
+    const items = document.querySelectorAll('[data-reveal]');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+    }, { threshold: 0.12 });
+    items.forEach(i => io.observe(i));
+
+    // generate randomized partition segment widths for the log visual
+    document.querySelectorAll('.partition-row .segs').forEach(row => {
+      const n = 14 + Math.floor(Math.random()*6);
+      for(let i=0;i<n;i++){
+        const seg = document.createElement('div');
+        seg.className = 'seg';
+        const w = 4 + Math.random()*9;
+        seg.style.width = w + '%';
+        seg.style.background = i % 5 === 0 ? 'rgba(95,187,174,0.18)' : 'rgba(255,255,255,0.035)';
+        row.appendChild(seg);
+      }
+    });
+  </script>
 
 </body>
 </html>
